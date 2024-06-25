@@ -28,6 +28,7 @@ namespace DiplomaModels
         public int id;
         [JsonIgnore]
         public int? PrinterId {  get; set; }
+        [JsonPropertyName("PrinterModel")]
         public virtual PrinterModel? PrinterModel { get; set; }
         ///// <summary>
         ///// имя принтера, которое пользователи видят по сети, когда он находится в общем доступе.

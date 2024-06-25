@@ -8,6 +8,6 @@ namespace DiplomaTry2.InterFaces
     {
         List<NetworkPrinter> GetListPrintersInfoFromPrintServer(string printServerName);
         NetworkPrinter? GetPrinterInfo(PrintQueue printQueue);
-        List<string> GetPrintersModelsList(string printServerName);
+        List<PrinterModel> GetPrintersModelsList(string printServerName);
     }
 }

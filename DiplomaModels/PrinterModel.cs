@@ -10,7 +10,7 @@ namespace DiplomaModels
         {
              
         }
-
+        [JsonIgnore]
         public int id { get; set; }
         /// <summary>
         /// Название модели принтера

@@ -37,7 +37,7 @@ namespace DiplomaTry2
                     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
                 })
                 .AddIdentityCookies();
-            builder.Services.AddTransient<IPrintServerService, PrintServerService>();
+            builder.Services.AddScoped<PrintServerService>();
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
@@ -73,11 +73,11 @@ namespace DiplomaTry2
 
             
             app.MapGet("/printerList", () => {
-                IPrintServerService printServerService = new PrintServerService();
+                PrintServerService printServerService = new PrintServerService();
                 return Results.Json(printServerService.GetListPrintersInfoFromPrintServer(@"\\vm-print"));
             });
             app.MapGet("/printerModelsList", () => {
-                IPrintServerService printServerService = new PrintServerService();
+                PrintServerService printServerService = new PrintServerService();
                 return Results.Json(printServerService.GetPrintersModelsList(@"\\vm-print"));
             });
          

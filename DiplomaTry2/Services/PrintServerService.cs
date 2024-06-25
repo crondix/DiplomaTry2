@@ -13,11 +13,11 @@ using DiplomaModels;
 using DevExpress.DocumentServices.ServiceModel.DataContracts;
 namespace DiplomaTry2.Services
 {
-   
-    public class PrintServerService: IPrintServerService
+
+    public class PrintServerService 
     {
-        
-        public  List<NetworkPrinter> GetListPrintersInfoFromPrintServer(string printServerName)
+
+        public List<NetworkPrinter> GetListPrintersInfoFromPrintServer(string printServerName)
         {
             List<NetworkPrinter> printers = new List<NetworkPrinter>();
 
@@ -43,9 +43,9 @@ namespace DiplomaTry2.Services
 
             return printers;
         }
-     public List<string>?  GetPrintersModelsNameList(string printServerName)
+        public List<PrinterModel>? GetPrintersModelsList(string printServerName)
         {
-            List<string> printersModelsName = new List<string>();
+            List<PrinterModel> printersModels = new List<PrinterModel>();
             try
             {
                 PrintServer printServer = new PrintServer(printServerName);
@@ -58,12 +58,18 @@ namespace DiplomaTry2.Services
                     {
                         if (!printQueue.IsOffline)
                         {
-                            if (!printersModelsName.Contains(printQueue.QueueDriver.Name)) printersModelsName.Add(printQueue.QueueDriver.Name);
+                            if (printersModels.FirstOrDefault(o => o.ModelName == printQueue.QueueDriver.Name) is null)
+                            {
+                                printersModels.Add(new PrinterModel
+                                {
+                                    ModelName = printQueue.QueueDriver.Name
+                                });
+                            }
                         }
                     }
                 }
 
-                return printersModelsName;
+                return printersModels;
             }
             catch (Exception e)
             {
@@ -71,27 +77,6 @@ namespace DiplomaTry2.Services
                 Console.WriteLine($"{e.StackTrace}");
                 return null;
             }
-            //try
-            //{
-            //    PrintServer printServer = new PrintServer(printServerName);
-            //    PrintQueueCollection printCollection = printServer.GetPrintQueues();
-
-            //    foreach (var printQueue in printCollection)
-            //    {
-            //        var printer = GetPrinterInfo(printQueue);
-            //        if (printer != null)
-            //        {
-            //           if( !printersModels.Contains(printer.ModelName)) printersModels.Add(printer.ModelName??"undefound".ToUpper());
-            //        }
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine($"Ошибка: {e.Message} ");
-            //    Console.WriteLine($"{e.StackTrace}");
-            //}
-
-         
         }
         public NetworkPrinter? GetPrinterInfo(PrintQueue printQueue)
         {
@@ -102,7 +87,7 @@ namespace DiplomaTry2.Services
                 {
                     if (!printQueue.IsOffline)
                     {
-                    
+
                         //var printInfoFromSNMP = InfoFromSNMP.GetPrintersInfo(printQueue.QueuePort.Name);
                         //var SNMPName = printInfoFromSNMP?.FirstOrDefault(k => k.Key == "Name").Value;
                         string name = printQueue.QueueDriver.Name;
@@ -118,8 +103,8 @@ namespace DiplomaTry2.Services
                             {
                                 ModelName = name,
                             },
-                            
-                            
+
+
                         };
                     }
                 }
