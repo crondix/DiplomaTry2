@@ -1,0 +1,77 @@
+﻿@page "/TestS"
+@using DiplomaModels
+@using System.Net.Http.Json
+@using System.Text.Json
+
+@inject PrintServerService printServerService
+@inject IConfiguration appConfig
+@inject HttpClient httpClient
+
+@rendermode RenderMode.InteractiveWebAssembly
+
+<h3>PrinterNameVerificationPage</h3>
+
+@if (PrinterModels is not null)
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>DriverName</th>
+                <th>Is Model Driver</th>
+
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var printer in PrinterModels)
+            {
+                <tr>
+                    <td class="align-content-center">@printer.ModelName</td>
+                    <td class="align-content-center"><input type="checkbox" name="name" value="" /></td>
+
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>DriverName</th>
+                <th>Is Model Driver</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="align-content-center  "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  "><span class="placeholder col-6"></span></td>
+            </tr>
+            <tr>
+                <td class="align-content-center   "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  "><span class="placeholder col-6"></span></td>
+            </tr>
+            <tr>
+                <td class="align-content-center   "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  "><span class="placeholder col-6"></span></td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+    List<PrinterModel>? PrinterModels;
+
+    protected override async Task OnInitializedAsync()
+    {
+        PrinterModels = await printServerService.GetPrintersModelsListAsync(@"\\vm-print");
+
+
+    }
+
+}

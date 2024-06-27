@@ -1,0 +1,33 @@
+﻿@page "/js"
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+<h3>Component</h3>
+<div>@стрДата</div>
+<button class="btn btn-primary d-block" @onclick="Set"> set</button>
+<button class="btn btn-primary d-block" @onclick="Get"> get</button>
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Get();
+        }
+        
+
+
+    }
+
+    string стрДата="";
+    async Task Set()
+    {
+        await JS.InvokeVoidAsync("localStorage.setItem", "dateShift", (DateTime.Now).ToString("yyyy-MM-dd HH:mm:ss"));
+    }
+    async Task Get()
+    {
+         стрДата = await JS.InvokeAsync<string>("localStorage.getItem", "dateShift");
+        StateHasChanged();
+        // await JS.InvokeVoidAsync("Console.log", $"{стрДата}");
+    }
+
+}

@@ -25,7 +25,7 @@ namespace DiplomaModels
 
 
         [JsonIgnore]
-        public int id;
+        public int id { get; set; }
         [JsonIgnore]
         public int? PrinterId {  get; set; }
         [JsonPropertyName("PrinterModel")]

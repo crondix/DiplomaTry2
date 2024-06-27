@@ -43,38 +43,92 @@ namespace DiplomaTry2.Services
 
             return printers;
         }
-        public List<PrinterModel>? GetPrintersModelsList(string printServerName)
+        public List<PrinterModel>? GetPrintersModelsList(string? printServerName)
         {
-            List<PrinterModel> printersModels = new List<PrinterModel>();
-            try
+            if (printServerName is not null)
             {
-                PrintServer printServer = new PrintServer(printServerName);
-                PrintQueueCollection printCollection = printServer.GetPrintQueues();
+                List<PrinterModel> printersModels = new List<PrinterModel>();
 
-                foreach (var printQueue in printCollection)
+                try
                 {
-                    IPAddress printIp;
-                    if (printQueue.QueuePort.Name is not null && IPAddress.TryParse(printQueue.QueuePort.Name, out printIp))
+                    PrintServer printServer = new PrintServer(printServerName);
+                    PrintQueueCollection printCollection = printServer.GetPrintQueues();
+
+                    foreach (var printQueue in printCollection)
                     {
-                        if (!printQueue.IsOffline)
+                        IPAddress printIp;
+                        if (printQueue.QueuePort.Name is not null && IPAddress.TryParse(printQueue.QueuePort.Name, out printIp))
                         {
-                            if (printersModels.FirstOrDefault(o => o.ModelName == printQueue.QueueDriver.Name) is null)
+                            if (!printQueue.IsOffline)
                             {
-                                printersModels.Add(new PrinterModel
+                                if (printersModels.FirstOrDefault(o => o.ModelName == printQueue.QueueDriver.Name) is null)
                                 {
-                                    ModelName = printQueue.QueueDriver.Name
-                                });
+                                    printersModels.Add(new PrinterModel
+                                    {
+                                        ModelName = printQueue.QueueDriver.Name
+                                    });
+                                }
                             }
                         }
                     }
-                }
 
-                return printersModels;
+                    return printersModels;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"GetPrinterInfoAsync Ошибка: {e.Message} ");
+                    Console.WriteLine($"{e.StackTrace}");
+                    return null;
+                }
             }
-            catch (Exception e)
+            else  return null;
+        }
+        public async Task<List<PrinterModel>> GetPrintersModelsListAsync(string? printServerName)
+        {
+            if (printServerName is not null)
             {
-                Console.WriteLine($"GetPrinterInfoAsync Ошибка: {e.Message} ");
-                Console.WriteLine($"{e.StackTrace}");
+                try
+                {
+                    // Используем Task.Run для выполнения синхронных операций в пуле потоков
+                    var printersModels = await Task.Run(() =>
+                    {
+                        List<PrinterModel> printersModels = new List<PrinterModel>();
+
+                        PrintServer printServer = new PrintServer(printServerName);
+                        PrintQueueCollection printCollection = printServer.GetPrintQueues();
+
+                        foreach (var printQueue in printCollection)
+                        {
+                            IPAddress printIp;
+                            if (printQueue.QueuePort.Name is not null && IPAddress.TryParse(printQueue.QueuePort.Name, out printIp))
+                            {
+                                if (!printQueue.IsOffline)
+                                {
+                                    if (printersModels.FirstOrDefault(o => o.ModelName == printQueue.QueueDriver.Name) is null)
+                                    {
+                                        printersModels.Add(new PrinterModel
+                                        {
+                                            ModelName = printQueue.QueueDriver.Name
+                                        });
+                                    }
+                                }
+                            }
+                        }
+
+                        return printersModels;
+                    });
+
+                    return printersModels;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"GetPrinterInfoAsync Ошибка: {e.Message} ");
+                    Console.WriteLine($"{e.StackTrace}");
+                    return null;
+                }
+            }
+            else
+            {
                 return null;
             }
         }
@@ -96,7 +150,7 @@ namespace DiplomaTry2.Services
                         //var modelSource = SNMPName != null ? "SNMPName" : "printQueue.QueueDriver.Name";
                         return new NetworkPrinter
                         {
-                            ShareName = printQueue.Name,
+                            ShareName = printQueue.ShareName,
                             Comment = printQueue.Comment,
                             Ip = printQueue.QueuePort.Name,
                             PrinterModel = new PrinterModel

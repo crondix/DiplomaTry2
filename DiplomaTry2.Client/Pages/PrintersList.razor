@@ -3,16 +3,14 @@
 @using System.Net.Http.Json
 @using System.Text.Json
 
-@page "/test"
+@page "/NetworkPrintersList"
 @rendermode RenderMode.InteractiveWebAssembly
 @inject HttpClient httpClient
 
 
-<button @onclick="Submit">Click</button>
+
 <div>@message</div>
-@if (printers is not null)
-{
-     <table class="table table-bordered table-striped">
+<table class="table table-bordered table-striped">
             <thead>
                 <tr>
                     <th>Share Name</th>
@@ -22,6 +20,9 @@
 
                 </tr>
             </thead>
+@if (printers is not null)
+{
+     
              <tbody>
     @foreach (var printer in printers)
     {
@@ -35,15 +36,49 @@
          </tr>
     }
         </tbody>
-    </table>
-}
+    }
+    else if (Loading)
+    {
+        
+            <tbody>
 
+                <tr>
+                    <td class="align-content-center  placeholder-glow"><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
+                </tr>
+                <tr>
+                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center  placeholder-glow"><span class="placeholder col-6"></span></td>
+                </tr>
+                <tr>
+                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                    <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
+                </tr>
+        </tbody>
+    }
+    else
+    {
+        <tbody>
+                <tr>
+                    <td colspan="4"><div class="w-100 d-flex justify-content-center p-8"><button class="btn btn-primary" @onclick="LoadingData">Get Date</button></div></td>
+                </tr>
+        </tbody>
+       
+    }
+</table>
 @code {
     List<NetworkPrinter>? printers;
     string message;
-  
-    async Task Submit()
+    bool Loading = false;
+    async Task LoadingData()
     {
+        Loading = true;
         var response = await httpClient.GetAsync("/printerlist");
 
 
