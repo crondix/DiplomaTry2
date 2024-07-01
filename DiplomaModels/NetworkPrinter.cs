@@ -25,11 +25,14 @@ namespace DiplomaModels
 
 
         [JsonIgnore]
-        public int id { get; set; }
+        public int Id { get; set; }
         [JsonIgnore]
-        public int? PrinterId {  get; set; }
+        public int? PrinterModelId { get; set; } // Внешний ключ
+        ///// <summary>
+        ///// Объект модели принтера
+        ///// </summary>
         [JsonPropertyName("PrinterModel")]
-        public virtual PrinterModel? PrinterModel { get; set; }
+        public virtual PrinterModel? PrinterModel { get; set; } // Навигационное свойство
         ///// <summary>
         ///// имя принтера, которое пользователи видят по сети, когда он находится в общем доступе.
         ///// </summary>

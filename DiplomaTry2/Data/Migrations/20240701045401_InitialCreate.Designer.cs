@@ -4,6 +4,7 @@ using DiplomaTry2.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DiplomaTry2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240701045401_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,11 +27,11 @@ namespace DiplomaTry2.Migrations
 
             modelBuilder.Entity("DiplomaModels.NetworkPrinter", b =>
                 {
-                    b.Property<int>("id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Comment")
                         .HasColumnType("nvarchar(max)")
@@ -39,39 +42,185 @@ namespace DiplomaTry2.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "ip");
 
-                    b.Property<int?>("PrinterId")
+                    b.Property<int?>("PrinterModelId")
                         .HasColumnType("int");
-
-                    b.Property<string>("PrinterModelNormalizedModelName")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ShareName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "name");
 
-                    b.HasKey("id");
+                    b.HasKey("Id");
 
-                    b.HasIndex("PrinterModelNormalizedModelName");
+                    b.HasIndex("PrinterModelId");
 
-                    b.ToTable("NetworkPrinter");
+                    b.ToTable("NetworkPrinters");
+                });
+
+            modelBuilder.Entity("DiplomaModels.PaperSize", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double?>("Height")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int?>("PrinterModelId")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("Width")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("PrinterModelId");
+
+                    b.ToTable("PaperSizes");
+                });
+
+            modelBuilder.Entity("DiplomaModels.PrintEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PrintEvents");
                 });
 
             modelBuilder.Entity("DiplomaModels.PrinterModel", b =>
                 {
-                    b.Property<string>("NormalizedModelName")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("IsColor")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsDuplexing")
+                        .HasColumnType("bit");
+
+                    b.Property<short?>("MaxCopyPerPrint")
+                        .HasColumnType("smallint");
 
                     b.Property<string>("ModelName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "modelName");
 
-                    b.HasKey("NormalizedModelName");
+                    b.Property<string>("NormalizedModelName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.ToTable("PrinterModel");
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedModelName")
+                        .IsUnique();
+
+                    b.ToTable("PrinterModels");
 
                     b.HasAnnotation("Relational:JsonPropertyName", "PrinterModel");
+                });
+
+            modelBuilder.Entity("DiplomaModels.PrintserverEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<short>("Code")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PrintserverEvents");
+                });
+
+            modelBuilder.Entity("DiplomaModels.Sender", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameNormalized")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Sender");
+                });
+
+            modelBuilder.Entity("DiplomaModels.SenderDevice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SenderDevice");
+                });
+
+            modelBuilder.Entity("DiplomaModels.SentPrintingFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<short>("Pages")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Size")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SentPrintingFile");
                 });
 
             modelBuilder.Entity("DiplomaTry2.Data.ApplicationUser", b =>
@@ -276,9 +425,16 @@ namespace DiplomaTry2.Migrations
                 {
                     b.HasOne("DiplomaModels.PrinterModel", "PrinterModel")
                         .WithMany()
-                        .HasForeignKey("PrinterModelNormalizedModelName");
+                        .HasForeignKey("PrinterModelId");
 
                     b.Navigation("PrinterModel");
+                });
+
+            modelBuilder.Entity("DiplomaModels.PaperSize", b =>
+                {
+                    b.HasOne("DiplomaModels.PrinterModel", null)
+                        .WithMany("PaperSizes")
+                        .HasForeignKey("PrinterModelId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -330,6 +486,11 @@ namespace DiplomaTry2.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("DiplomaModels.PrinterModel", b =>
+                {
+                    b.Navigation("PaperSizes");
                 });
 #pragma warning restore 612, 618
         }

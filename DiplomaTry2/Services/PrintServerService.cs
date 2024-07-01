@@ -85,50 +85,64 @@ namespace DiplomaTry2.Services
         }
         public async Task<List<PrinterModel>> GetPrintersModelsListAsync(string? printServerName)
         {
-            if (printServerName is not null)
+            if (string.IsNullOrWhiteSpace(printServerName))
             {
-                try
+                return null;
+            }
+
+            try
+            {
+                return await Task.Run(() =>
                 {
-                    // Используем Task.Run для выполнения синхронных операций в пуле потоков
-                    var printersModels = await Task.Run(() =>
+                    List<PrinterModel> printersModels = new List<PrinterModel>();
+
+                    PrintServer printServer = new PrintServer(printServerName);
+                    PrintQueueCollection printCollection = printServer.GetPrintQueues();
+
+                    foreach (var printQueue in printCollection.ToList())
                     {
-                        List<PrinterModel> printersModels = new List<PrinterModel>();
-
-                        PrintServer printServer = new PrintServer(printServerName);
-                        PrintQueueCollection printCollection = printServer.GetPrintQueues();
-
-                        foreach (var printQueue in printCollection)
+                        if (printQueue.QueuePort?.Name is not null && IPAddress.TryParse(printQueue.QueuePort.Name, out IPAddress _))
                         {
-                            IPAddress printIp;
-                            if (printQueue.QueuePort.Name is not null && IPAddress.TryParse(printQueue.QueuePort.Name, out printIp))
+                            if (!printQueue.IsOffline)
                             {
-                                if (!printQueue.IsOffline)
+                                if (printersModels.FirstOrDefault(o => o.ModelName == printQueue.QueueDriver.Name) is null)
                                 {
-                                    if (printersModels.FirstOrDefault(o => o.ModelName == printQueue.QueueDriver.Name) is null)
+                                    try
                                     {
+                                        // Получаем возможности принтера
+                                        PrintCapabilities capabilities = printQueue.GetPrintCapabilities();
+
                                         printersModels.Add(new PrinterModel
                                         {
-                                            ModelName = printQueue.QueueDriver.Name
+                                            ModelName = printQueue.QueueDriver.Name,
+                                            IsColor = capabilities.OutputColorCapability.Contains(OutputColor.Color),
+                                            IsDuplexing = capabilities.DuplexingCapability.Contains(Duplexing.TwoSidedShortEdge) || capabilities.DuplexingCapability.Contains(Duplexing.TwoSidedLongEdge),
+                                            MaxCopyPerPrint = Convert.ToInt16(capabilities.MaxCopyCount)
+                                        });
+                                    }
+                                    catch (PrintQueueException ex)
+                                    {
+                                        // Если возникает ошибка из-за недостаточных прав, устанавливаем значения по умолчанию
+                                        printersModels.Add(new PrinterModel
+                                        {
+                                            ModelName = printQueue.QueueDriver.Name,
+                                            IsColor = null,
+                                            IsDuplexing = null,
+                                            MaxCopyPerPrint = null
                                         });
                                     }
                                 }
                             }
                         }
-
-                        return printersModels;
-                    });
+                    }
 
                     return printersModels;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"GetPrinterInfoAsync Ошибка: {e.Message} ");
-                    Console.WriteLine($"{e.StackTrace}");
-                    return null;
-                }
+                });
             }
-            else
+            catch (Exception e)
             {
+                Console.WriteLine($"GetPrintersModelsListAsync Ошибка: {e.Message}");
+                Console.WriteLine(e.StackTrace);
                 return null;
             }
         }

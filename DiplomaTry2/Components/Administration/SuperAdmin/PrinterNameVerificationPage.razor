@@ -4,20 +4,23 @@
 @using System.Text.Json
 @using DiplomaTry2.Data
 @using Microsoft.EntityFrameworkCore
+
  @inject PrintServerService printServerService
  @inject IDbContextFactory<ApplicationDbContext> DbContextFactory
 @inject IConfiguration appConfig
 @inject HttpClient httpClient
+@inject NavigationManager NavigationManager
 
 @rendermode RenderMode.InteractiveServer
 
 <h3>Printer Name Verification @if (IsAdditionSuccessful is not null)
     {
-        <span class="@(IsAdditionSuccessful??false?"bg-success":"bg-warning")">@(IsAdditionSuccessful ?? false ? "Добавление выполнено успешно" : " Произошла ошибка") </span>
+        <span class="@(IsAdditionSuccessful??false?"bg-success":"bg-warning")">@(IsAdditionSuccessful ?? false ? "Добавление выполнено успешно" : $" Произошла ошибка: {AdditionErrorMessage}") </span>
     }
 </h3>
 <div class="row">
     <div class="col-6">
+        <div class="position-relative">
         @if (PrinterModelsFromPrintServer is not null)
         {
 
@@ -41,10 +44,7 @@
                     }
                 </tbody>
             </table>
-            @if (Adding)
-            {
-                <div class="position-absolute top-0 bottom-0 start-0 end-0 mt-0 mb-3 ms-3 me-3 bg-dark opacity-25 d-flex justify-content-center align-content-center">
-                </div>}
+               
         }
         else if (!Loading)
         {
@@ -93,8 +93,17 @@
             </table>
 
         }
+            @if (Adding)
+            {
+                <div class="position-absolute top-0 bottom-0 start-0 end-0 mt-0  bg-dark opacity-25 d-flex justify-content-center align-content-center">
+                </div>
+            }
     </div>
+      
+    </div>
+
     <div class="col-6">
+        <div class="position-relative">
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
@@ -123,10 +132,10 @@
         </table>
         @if (Adding)
         {
-            <div class="position-absolute top-0 bottom-0 start-0 end-0 mt-0 mb-3 ms-3 me-3 bg-dark opacity-25 d-flex justify-content-center align-content-center">
+            <div class="position-absolute top-0 bottom-0 start-0 end-0 mt-0  bg-dark opacity-25 d-flex justify-content-center align-content-center">
             </div>
         }
-        
+        </div>
         <button class="btn btn-primary" @onclick="AddDB">Add to DB</button>
     </div>
 </div>
@@ -188,7 +197,7 @@
         {
             Adding = true;
             await using var DbContext = DbContextFactory.CreateDbContext();
-            DbContext.PrinterModel.AddRange(SelectedPrinters);
+            DbContext.PrinterModels.AddRange(SelectedPrinters);
 
             DbContext.SaveChanges();
             Adding = false;
@@ -200,7 +209,7 @@
         catch (Exception e)
         {
             IsAdditionSuccessful = false;
-            AdditionErrorMessage = e.Message;
+            AdditionErrorMessage = e?.InnerException?.Message??"";
         }
        
     }
@@ -213,7 +222,7 @@
         {
             PrinterModelsFromPrintServer = await printServerService.GetPrintersModelsListAsync(@"\\vm-print");
             await using var DbContext = DbContextFactory.CreateDbContext();
-            PrinterModelsFromBD = DbContext.PrinterModel.ToList();
+            PrinterModelsFromBD = DbContext.PrinterModels.ToList();
             @foreach (var printer in PrinterModelsFromPrintServer.ToList())
             {
                 if (PrinterModelsFromBD?.FirstOrDefault(p => p?.NormalizedModelName == printer?.NormalizedModelName) is not null)

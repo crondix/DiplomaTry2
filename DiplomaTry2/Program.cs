@@ -19,6 +19,7 @@ using DiplomaTry2.Components.Pages;
 using System.Net.Http;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.AspNetCore.Components;
 namespace DiplomaTry2
 {
     public class Program
@@ -26,7 +27,7 @@ namespace DiplomaTry2
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+           
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
@@ -70,17 +71,17 @@ namespace DiplomaTry2
             builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 
-
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7197/") });
+            
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress =  new Uri("https://localhost:7197/") });
             builder.Services.AddDevExpressBlazor(configure => configure.BootstrapVersion = BootstrapVersion.v5);
             builder.Configuration.AddJsonFile("config.json");
             builder.Services.AddScoped<PrintServerService>();
 
-
+            
 
 
             var app = builder.Build();
-
+            
             // Apply migrations at startup
             //using (var scope = app.Services.CreateScope())
             //{

@@ -22,8 +22,14 @@ namespace DiplomaTry2.Data
     //}
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DbSet<NetworkPrinter> NetworkPrinter { get; set; }
-        public DbSet<PrinterModel> PrinterModel { get; set; }
+        public DbSet<NetworkPrinter> NetworkPrinters { get; set; }
+        public DbSet<PrinterModel> PrinterModels { get; set; }
+        public DbSet<PaperSize> PaperSizes { get; set; }
+        public DbSet<PrintEvent> PrintEvents { get; set; }
+        public DbSet<PrintserverEvent> PrintserverEvents { get; set; }
+        public DbSet<SenderDevice> SenderDevice { get; set; }
+        public DbSet<SentPrintingFile> SentPrintingFile { get; set; }
+        public DbSet<Sender> Sender { get; set; }
        
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -33,6 +39,8 @@ namespace DiplomaTry2.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+          
+
             base.OnModelCreating(modelBuilder);
 
           
