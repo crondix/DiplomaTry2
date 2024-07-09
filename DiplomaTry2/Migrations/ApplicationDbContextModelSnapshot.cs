@@ -86,7 +86,7 @@ namespace DiplomaTry2.Migrations
                     b.ToTable("PaperSizes");
                 });
 
-            modelBuilder.Entity("DiplomaModels.PrintEvent", b =>
+            modelBuilder.Entity("DiplomaModels.EventSuccessfulPrinting", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -94,10 +94,25 @@ namespace DiplomaTry2.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("DateTime")
+                    b.Property<DateTime?>("DateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("SenderDeviceId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SentPrintingFileId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("SenderDeviceId");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("SentPrintingFileId");
 
                     b.ToTable("PrintEvents");
                 });
@@ -191,7 +206,16 @@ namespace DiplomaTry2.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NameNormalized")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("NetworkPrinterId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("NetworkPrinterId");
 
                     b.ToTable("SenderDevice");
                 });
@@ -211,9 +235,8 @@ namespace DiplomaTry2.Migrations
                     b.Property<short>("Pages")
                         .HasColumnType("smallint");
 
-                    b.Property<string>("Size")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Size")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -432,6 +455,36 @@ namespace DiplomaTry2.Migrations
                     b.HasOne("DiplomaModels.PrinterModel", null)
                         .WithMany("PaperSizes")
                         .HasForeignKey("PrinterModelId");
+                });
+
+            modelBuilder.Entity("DiplomaModels.EventSuccessfulPrinting", b =>
+                {
+                    b.HasOne("DiplomaModels.SenderDevice", "SenderDevice")
+                        .WithMany()
+                        .HasForeignKey("SenderDeviceId");
+
+                    b.HasOne("DiplomaModels.Sender", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId");
+
+                    b.HasOne("DiplomaModels.SentPrintingFile", "SentPrintingFile")
+                        .WithMany()
+                        .HasForeignKey("SentPrintingFileId");
+
+                    b.Navigation("Sender");
+
+                    b.Navigation("SenderDevice");
+
+                    b.Navigation("SentPrintingFile");
+                });
+
+            modelBuilder.Entity("DiplomaModels.SenderDevice", b =>
+                {
+                    b.HasOne("DiplomaModels.NetworkPrinter", "NetworkPrinter")
+                        .WithMany()
+                        .HasForeignKey("NetworkPrinterId");
+
+                    b.Navigation("NetworkPrinter");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

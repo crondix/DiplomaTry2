@@ -76,6 +76,8 @@ namespace DiplomaTry2
             builder.Services.AddDevExpressBlazor(configure => configure.BootstrapVersion = BootstrapVersion.v5);
             builder.Configuration.AddJsonFile("config.json");
             builder.Services.AddScoped<PrintServerService>();
+            builder.Services.AddScoped<EventLogService>();
+            builder.Services.AddScoped<EventLogProcessingService>();
 
             
 

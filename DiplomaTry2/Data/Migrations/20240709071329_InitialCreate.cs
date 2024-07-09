@@ -29,19 +29,6 @@ namespace DiplomaTry2.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PrintEvents",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PrintEvents", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PrintserverEvents",
                 columns: table => new
                 {
@@ -70,26 +57,13 @@ namespace DiplomaTry2.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SenderDevice",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SenderDevice", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SentPrintingFile",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Size = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Size = table.Column<int>(type: "int", nullable: false),
                     Pages = table.Column<short>(type: "smallint", nullable: false)
                 },
                 constraints: table =>
@@ -139,6 +113,57 @@ namespace DiplomaTry2.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "SenderDevice",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NameNormalized = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NetworkPrinterId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SenderDevice", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SenderDevice_NetworkPrinters_NetworkPrinterId",
+                        column: x => x.NetworkPrinterId,
+                        principalTable: "NetworkPrinters",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PrintEvents",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    SenderId = table.Column<int>(type: "int", nullable: true),
+                    SenderDeviceId = table.Column<int>(type: "int", nullable: true),
+                    SentPrintingFileId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PrintEvents", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PrintEvents_SenderDevice_SenderDeviceId",
+                        column: x => x.SenderDeviceId,
+                        principalTable: "SenderDevice",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PrintEvents_Sender_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "Sender",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PrintEvents_SentPrintingFile_SentPrintingFileId",
+                        column: x => x.SentPrintingFileId,
+                        principalTable: "SentPrintingFile",
+                        principalColumn: "Id");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_NetworkPrinters_PrinterModelId",
                 table: "NetworkPrinters",
@@ -160,14 +185,31 @@ namespace DiplomaTry2.Migrations
                 table: "PrinterModels",
                 column: "NormalizedModelName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PrintEvents_SenderDeviceId",
+                table: "PrintEvents",
+                column: "SenderDeviceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PrintEvents_SenderId",
+                table: "PrintEvents",
+                column: "SenderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PrintEvents_SentPrintingFileId",
+                table: "PrintEvents",
+                column: "SentPrintingFileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SenderDevice_NetworkPrinterId",
+                table: "SenderDevice",
+                column: "NetworkPrinterId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "NetworkPrinters");
-
             migrationBuilder.DropTable(
                 name: "PaperSizes");
 
@@ -178,13 +220,16 @@ namespace DiplomaTry2.Migrations
                 name: "PrintserverEvents");
 
             migrationBuilder.DropTable(
-                name: "Sender");
-
-            migrationBuilder.DropTable(
                 name: "SenderDevice");
 
             migrationBuilder.DropTable(
+                name: "Sender");
+
+            migrationBuilder.DropTable(
                 name: "SentPrintingFile");
+
+            migrationBuilder.DropTable(
+                name: "NetworkPrinters");
 
             migrationBuilder.DropTable(
                 name: "PrinterModels");

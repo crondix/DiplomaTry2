@@ -25,7 +25,7 @@ namespace DiplomaTry2.Data
         public DbSet<NetworkPrinter> NetworkPrinters { get; set; }
         public DbSet<PrinterModel> PrinterModels { get; set; }
         public DbSet<PaperSize> PaperSizes { get; set; }
-        public DbSet<PrintEvent> PrintEvents { get; set; }
+        public DbSet<EventSuccessfulPrinting> EventSuccessfulPrintings { get; set; }
         public DbSet<PrintserverEvent> PrintserverEvents { get; set; }
         public DbSet<SenderDevice> SenderDevice { get; set; }
         public DbSet<SentPrintingFile> SentPrintingFile { get; set; }

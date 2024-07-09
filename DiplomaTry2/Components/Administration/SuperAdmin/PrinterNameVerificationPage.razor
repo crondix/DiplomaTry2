@@ -223,7 +223,7 @@
             PrinterModelsFromPrintServer = await printServerService.GetPrintersModelsListAsync(@"\\vm-print");
             await using var DbContext = DbContextFactory.CreateDbContext();
             PrinterModelsFromBD = DbContext.PrinterModels.ToList();
-            @foreach (var printer in PrinterModelsFromPrintServer.ToList())
+            foreach (var printer in PrinterModelsFromPrintServer.ToList())
             {
                 if (PrinterModelsFromBD?.FirstOrDefault(p => p?.NormalizedModelName == printer?.NormalizedModelName) is not null)
                 {

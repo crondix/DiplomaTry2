@@ -11,11 +11,17 @@ using System.Net.NetworkInformation;
 using DiplomaTry2.InterFaces;
 using DiplomaModels;
 using DevExpress.DocumentServices.ServiceModel.DataContracts;
+using DiplomaTry2.Models;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using System.Diagnostics.Eventing.Reader;
 namespace DiplomaTry2.Services
 {
 
     public class PrintServerService 
     {
+        //[Inject]
+        //private EventLogService EventLog { get; set; }
 
         public List<NetworkPrinter> GetListPrintersInfoFromPrintServer(string printServerName)
         {
@@ -186,5 +192,6 @@ namespace DiplomaTry2.Services
                 return null;
             }
         }
+
     }
 }
