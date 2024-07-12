@@ -71,6 +71,8 @@ namespace DiplomaTry2.Components.Pages
                               .ThenInclude(pm => pm.PaperSizes)
                         .Include(e=>e.Sender)
                         .Include(e=>e.SentPrintingFile)
+                        .OrderBy(record => record.DateTime).Reverse()
+                          .Take(50)
                         .ToListAsync();
                 }
 

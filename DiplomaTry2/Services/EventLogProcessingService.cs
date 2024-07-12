@@ -27,34 +27,33 @@ namespace DiplomaTry2.Services
             {
                 try
                 {
-                    var eventFromDb = await context.EventsSuccessfulPrinting
-                            .Include(e => e.Sender)
-                            .Include(e => e.SenderDevice)
-                            .Include(e => e.SentPrintingFile)
-                            .ToListAsync();
+                    var eventFromDb = await context.EventsSuccessfulPrinting.ToListAsync();
+
+                    var networkPrinters = await context.NetworkPrinters.ToListAsync();
+                    var dbTargetPrinters = await context.TargetPrinters.ToListAsync();
+                    var dbSenders = await context.Senders.ToListAsync();
+                    var dbSenderDevices = await context.SenderDevices.ToListAsync();
+                    var dbSentPrintingFiles = await context.SentPrintingFiles.ToListAsync();
 
                     foreach (var item in events)
                     {
                         var existingEvent = eventFromDb.FirstOrDefault(e =>
-                            e.SenderDevice?.NameNormalized == item.SenderDevice?.NameNormalized &&
-                            e.TargetPrinter?.NameNormalized == item.TargetPrinter?.NameNormalized &&
-                            e.SentPrintingFile?.Name == item.SentPrintingFile?.Name &&
-                            e.Sender?.NameNormalized == item.Sender?.NameNormalized &&
                             e.DateTime == item.DateTime);
 
                         if (existingEvent is null)
                         {
-                            var dbTargetPrinter = await context.TargetPrinters
-                                .FirstOrDefaultAsync(tp => tp.NameNormalized == (item.TargetPrinter.NameNormalized??""));
+                            var dbTargetPrinter = dbTargetPrinters.FirstOrDefault(e =>
+                           e.NameNormalized==(item.TargetPrinter?.NameNormalized ?? "")
+                            );
+                                ////.TargetPrinters
+                                ////.FirstOrDefaultAsync(tp => tp.NameNormalized == (item.TargetPrinter.NameNormalized??""));
                             if (dbTargetPrinter != null)
                             {
                                 item.TargetPrinter = dbTargetPrinter;
                             }
                             else
                             {
-                                var networkPrinter = await context.NetworkPrinters
-                                    .Include(np => np.PrinterModel)
-                                    .FirstOrDefaultAsync(p => p.PrinterModel.NormalizedModelName == item.TargetPrinter.NameNormalized);
+                                var networkPrinter= networkPrinters.FirstOrDefault(p => p.ShareName == item?.TargetPrinter?.NameNormalized);
 
                                 if (networkPrinter != null)
                                 {
@@ -65,8 +64,9 @@ namespace DiplomaTry2.Services
                                 //item.TargetPrinter = item.TargetPrinter;
                             }
 
-                            var dbSender = await context.Senders
-                                .FirstOrDefaultAsync(s => s.NameNormalized == item.Sender.NameNormalized);
+                            var dbSender = dbSenders.FirstOrDefault(s => s.NameNormalized == item.Sender.NameNormalized);
+                                //await context.Senders
+                                //.FirstOrDefaultAsync(s => s.NameNormalized == item.Sender.NameNormalized);
                             if (dbSender != null)
                             {
                                 item.Sender = dbSender;
@@ -75,11 +75,13 @@ namespace DiplomaTry2.Services
                             {
                                 await context.Senders.AddAsync(item.Sender);
                                 await context.SaveChangesAsync();
+                                //dbSenders = await context.Senders.ToListAsync();
                                 //item.Sender = item.Sender;
                             }
 
-                            var dbSenderDevice = await context.SenderDevices
-                                .FirstOrDefaultAsync(s => s.NameNormalized == item.SenderDevice.NameNormalized);
+                            var dbSenderDevice = dbSenderDevices.FirstOrDefault(s => s.NameNormalized == item.SenderDevice.NameNormalized);
+                            //await context.SenderDevices
+
                             if (dbSenderDevice != null)
                             {
                                 item.SenderDevice = dbSenderDevice;
@@ -88,11 +90,14 @@ namespace DiplomaTry2.Services
                             {
                                 await context.SenderDevices.AddAsync(item.SenderDevice);
                                 await context.SaveChangesAsync();
+                                //dbSenderDevices = await context.SenderDevices.ToListAsync();
                                 //item.SenderDevice = item.SenderDevice;
                             }
 
-                            var dbSentPrintingFile = await context.SentPrintingFiles
-                                .FirstOrDefaultAsync(s => s.Name == item.SentPrintingFile.Name &&
+                            var dbSentPrintingFile = 
+                                //await context.SentPrintingFiles
+                                dbSentPrintingFiles
+                                .FirstOrDefault(s => s.Name == item.SentPrintingFile.Name &&
                                                           s.Size == item.SentPrintingFile.Size &&
                                                           s.Pages == item.SentPrintingFile.Pages);
                             if (dbSentPrintingFile != null)
@@ -103,6 +108,7 @@ namespace DiplomaTry2.Services
                             {
                                 await context.SentPrintingFiles.AddAsync(item.SentPrintingFile);
                                 await context.SaveChangesAsync();
+                                //dbSentPrintingFiles = await context.SentPrintingFiles.ToListAsync();
                                 //item.SentPrintingFile = item.SentPrintingFile;
                             }
 
@@ -110,6 +116,12 @@ namespace DiplomaTry2.Services
                         }
                     }
                     await context.SaveChangesAsync();
+                    eventFromDb = await context.EventsSuccessfulPrinting
+                           .ToListAsync();
+                     networkPrinters = await context.NetworkPrinters.ToListAsync();
+                     dbSenders = await context.Senders.ToListAsync();
+                     dbSenderDevices = await context.SenderDevices.ToListAsync();
+                     dbSentPrintingFiles = await context.SentPrintingFiles.ToListAsync();
                 }
                 catch (Exception ex)
                 {
@@ -132,14 +144,12 @@ namespace DiplomaTry2.Services
 
 
         }
-        public async Task<List<EventSuccessfulPrinting>?> ConvertEventPrint307ToEventSuccessfulPrinting(List<EventPrint307>? EventsList307)
+        public async Task<List<EventSuccessfulPrinting>> ConvertEventPrint307ToEventSuccessfulPrinting(List<EventPrint307> EventsList307)
         {
 
-            if (EventsList307 != null)
-            {
+           
                 List<EventSuccessfulPrinting> eventSuccessfulPrinting = new List<EventSuccessfulPrinting>();
-                await using (var context = _contextFactory.CreateDbContext())
-                {
+                
                     foreach (var eventLog in EventsList307.ToList())
                     {
                         SentPrintingFile SentFile = new SentPrintingFile
@@ -175,9 +185,8 @@ namespace DiplomaTry2.Services
                         ));
                     }
                     return eventSuccessfulPrinting;
-                }
-            }
-            return null;
+                
+          
         }
 
     }

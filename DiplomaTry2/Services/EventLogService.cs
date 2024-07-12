@@ -71,14 +71,14 @@ namespace DiplomaTry2.Services
                     
                     foreach (var item in Events)
                     {
-                        Console.WriteLine($"Docname: {item.Properties.ElementAt(1).Value}," +
-                            $" userName: {item.Properties.ElementAt(2).Value}, " +
-                            $"pcName: {item.Properties.ElementAt(3).Value} "+
-                            $"PrinterName: {item.Properties.ElementAt(4).Value} " +
-                            $"Size: {item.Properties.ElementAt(6).Value} " +
-                            $"Page: {item.Properties.ElementAt(7).Value} " +
-                            $"Data: {item.TimeCreated ?? null}"
-                            );
+                        //Console.WriteLine($"Docname: {item.Properties.ElementAt(1).Value}," +
+                        //    $" userName: {item.Properties.ElementAt(2).Value}, " +
+                        //    $"pcName: {item.Properties.ElementAt(3).Value} "+
+                        //    $"PrinterName: {item.Properties.ElementAt(4).Value} " +
+                        //    $"Size: {item.Properties.ElementAt(6).Value} " +
+                        //    $"Page: {item.Properties.ElementAt(7).Value} " +
+                        //    $"Data: {item.TimeCreated ?? null}"
+                        //    );
                         Events307List.Add(
                             new EventPrint307
                             (

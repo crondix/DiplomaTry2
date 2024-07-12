@@ -15,12 +15,13 @@ namespace DiplomaTry2.Models
 
 
 
-        /// <param name="docName">Param2 in Event 307 Properties</param>
-        /// <param name="userName">Param3 in Event 307 Properties</param>
-        /// <param name="pcName">Param4 in Event 307 Properties</param>
-        /// <param name="printerName">Param5 in Event 307 Properties</param>
-        /// <param name="size">Param6 in Event 307 Properties</param>
-        /// <param name="page">Param7 in Event 307 Properties</param>
+        /// <param name="docName">Param1 in Event 307 Properties</param>
+        /// <param name="userName">Param2 in Event 307 Properties</param>
+        /// <param name="pcName">Param3 in Event 307 Properties</param>
+        /// <param name="printerName">Param4 in Event 307 Properties</param>
+        /// <param name="size">Param5 in Event 307 Properties</param>
+        /// <param name="page">Param6 in Event 307 Properties</param>
+        /// <param name="port">Param6 in Event 307 Properties</param>
         /// <param name="dateTime">Дата время события из журнала</param>
         public EventPrint307(string docName, string userName, string pcName, string printerName, long size, short page, string port, DateTime? dateTime)
         {
