@@ -169,7 +169,7 @@ namespace DiplomaTry2.Services
                         };
                         TargetPrinter TargetPrinter = new TargetPrinter
                         {
-                            Name = eventLog.PCName,
+                            Name = eventLog.PrinterName,
                         };
 
 
