@@ -4,14 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using DiplomaModels.Interface;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace DiplomaModels
 {
     [Index(nameof(NameNormalized), IsUnique = true)]
-    public class SenderDevice: ISenderDevice
+    public class TargetPrinter
     {
         private string _name;
 
@@ -32,6 +30,7 @@ namespace DiplomaModels
             get { return _nameNormalized; }
             set { _nameNormalized = value; }
         }
-      
+        public int? NetworkPrinterId { get; set; }
+        public virtual NetworkPrinter? NetworkPrinter { get; set; }
     }
 }

@@ -1,1 +1,180 @@
-﻿
+﻿@page "/Events"
+@rendermode RenderMode.InteractiveServer
+
+<h3>
+    Printer Name Verification @if (IsAdditionSuccessful is not null)
+    {
+        <span class="@(IsAdditionSuccessful??false?"bg-success":"bg-warning")">
+            @(IsAdditionSuccessful ?? false ? "Добавление выполнено успешно" : $" Произошла ошибка: {AdditionErrorMessage}")
+        </span>
+    }
+</h3>
+
+<div class="row">
+    <div class="col-12 d-flex justify-content-end">
+        <button class="btn btn-primary m-sm-1" @onclick="LoadData">Запросить данные из базы данных</button>
+        <button class="btn btn-primary m-sm-1" @onclick="Actualization">Актуализировать данные из журнала</button>
+    </div>
+
+    <div class="col-12">
+        <div class="position-relative">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>
+                            DataTime
+                        </th>
+                        <th>
+                            Sender Name
+                        </th>
+                        <th>
+                            Device Name
+                        </th>
+                        <th>
+                            Printer Name
+                        </th>
+                        <th>
+                            Document Name
+                        </th>
+                        <th>
+                            Document Page
+                        </th>
+                        <th>
+                            Document Size (bytes)
+                        </th>
+                    </tr>
+                </thead>
+                @if (EventsSuccessfulPrinting is not null)
+                {
+                    <tbody>
+                        @foreach (var sEvent in EventsSuccessfulPrinting)
+                        {
+                            <tr>
+                                <td class="align-content-center">
+                                    @(sEvent.DateTime.ToString() ?? "null")
+                                </td>
+                                <td class="align-content-center">
+                                    @(sEvent.Sender?.Name ?? "null")
+                                </td>
+                                <td class="align-content-center">
+                                    @(sEvent.SenderDevice?.NameNormalized ?? "null")
+                                </td>
+                                <td class="align-content-center">
+                                    @(sEvent.TargetPrinter?.NetworkPrinter?.ShareName
+                                    ?? 
+                                    sEvent.TargetPrinter?.Name
+                                    ?? 
+                                    "null")
+                                </td>
+                                <td class="align-content-center">
+                                    @(sEvent.SentPrintingFile?.Name ?? " null")
+                                </td> 
+                                <td class="align-content-center">
+                                    @(sEvent.SentPrintingFile?.Pages.ToString() ?? " null")
+                                </td>
+                                <td class="align-content-center">
+                                    @(sEvent.SentPrintingFile?.Size.ToString() ?? " null")
+                                </td>
+
+
+                            </tr>
+                        }
+                    </tbody>
+                }
+                else if (!Loading)
+                {
+                    <tbody>
+                        <tr>
+                            <td colspan="7">
+                                <div class="w-100 d-flex justify-content-center p-8">
+                                    <button class="btn btn-primary" @onclick="LoadData">Get Data</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                }
+                else
+                {
+
+                    <tbody>
+
+                        <tr>
+                            <td class="align-content-center  placeholder-glow">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                            <td class="align-content-center placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-content-center  placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                            <td class="align-content-center  placeholder-glow">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-content-center  placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                            <td class="align-content-center placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-content-center  placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                            <td class="align-content-center placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-content-center  placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                            <td class="align-content-center placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-content-center  placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                            <td class="align-content-center placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-content-center  placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                            <td class="align-content-center placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-content-center  placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                            <td class="align-content-center placeholder-glow ">
+                                <span class="placeholder col-6"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                }
+
+            </table>
+            @if (Adding)
+            {
+                <div class="position-absolute top-0 bottom-0 start-0 end-0 mt-0 bg-dark opacity-25 d-flex justify-content-center align-content-center">
+                </div>
+            }
+        </div>
+
+    </div>
+
+
+</div>

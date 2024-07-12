@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 using DiplomaModels.Interface;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace DiplomaModels
 {
+    [Index(nameof(NameNormalized), IsUnique = true)]
     public class Sender : IUser
     {
         private string _name;

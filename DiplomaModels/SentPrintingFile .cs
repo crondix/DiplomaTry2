@@ -10,7 +10,7 @@ namespace DiplomaModels
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public int Size { get; set; } 
+        public long Size { get; set; } 
         public short Pages { get; set; }
     }
 }

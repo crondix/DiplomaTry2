@@ -54,11 +54,13 @@ namespace DiplomaTry2
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-            builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+            builder.Services.AddDbContextFactory<ApplicationDbContext>(options => {
+                options.EnableSensitiveDataLogging();
                 options.UseSqlServer(
                     connectionString, sqlServerOptions =>
                     sqlServerOptions.EnableRetryOnFailure()
-                ));
+                );}
+            );
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

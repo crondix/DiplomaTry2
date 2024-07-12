@@ -22,6 +22,42 @@ namespace DiplomaTry2.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("DiplomaModels.EventSuccessfulPrinting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("DateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("SenderDeviceId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SentPrintingFileId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetPrinterId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderDeviceId");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("SentPrintingFileId");
+
+                    b.HasIndex("TargetPrinterId");
+
+                    b.ToTable("EventsSuccessfulPrinting");
+                });
+
             modelBuilder.Entity("DiplomaModels.NetworkPrinter", b =>
                 {
                     b.Property<int>("Id")
@@ -86,37 +122,6 @@ namespace DiplomaTry2.Migrations
                     b.ToTable("PaperSizes");
                 });
 
-            modelBuilder.Entity("DiplomaModels.EventSuccessfulPrinting", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("DateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("SenderDeviceId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SenderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SentPrintingFileId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SenderDeviceId");
-
-                    b.HasIndex("SenderId");
-
-                    b.HasIndex("SentPrintingFileId");
-
-                    b.ToTable("PrintEvents");
-                });
-
             modelBuilder.Entity("DiplomaModels.PrinterModel", b =>
                 {
                     b.Property<int>("Id")
@@ -170,6 +175,9 @@ namespace DiplomaTry2.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .IsUnique();
+
                     b.ToTable("PrintserverEvents");
                 });
 
@@ -187,11 +195,14 @@ namespace DiplomaTry2.Migrations
 
                     b.Property<string>("NameNormalized")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sender");
+                    b.HasIndex("NameNormalized")
+                        .IsUnique();
+
+                    b.ToTable("Senders");
                 });
 
             modelBuilder.Entity("DiplomaModels.SenderDevice", b =>
@@ -208,16 +219,14 @@ namespace DiplomaTry2.Migrations
 
                     b.Property<string>("NameNormalized")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("NetworkPrinterId")
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NetworkPrinterId");
+                    b.HasIndex("NameNormalized")
+                        .IsUnique();
 
-                    b.ToTable("SenderDevice");
+                    b.ToTable("SenderDevices");
                 });
 
             modelBuilder.Entity("DiplomaModels.SentPrintingFile", b =>
@@ -235,12 +244,41 @@ namespace DiplomaTry2.Migrations
                     b.Property<short>("Pages")
                         .HasColumnType("smallint");
 
-                    b.Property<int>("Size")
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SentPrintingFiles");
+                });
+
+            modelBuilder.Entity("DiplomaModels.TargetPrinter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameNormalized")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("NetworkPrinterId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("SentPrintingFile");
+                    b.HasIndex("NameNormalized")
+                        .IsUnique();
+
+                    b.HasIndex("NetworkPrinterId");
+
+                    b.ToTable("TargetPrinters");
                 });
 
             modelBuilder.Entity("DiplomaTry2.Data.ApplicationUser", b =>
@@ -441,6 +479,33 @@ namespace DiplomaTry2.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("DiplomaModels.EventSuccessfulPrinting", b =>
+                {
+                    b.HasOne("DiplomaModels.SenderDevice", "SenderDevice")
+                        .WithMany()
+                        .HasForeignKey("SenderDeviceId");
+
+                    b.HasOne("DiplomaModels.Sender", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId");
+
+                    b.HasOne("DiplomaModels.SentPrintingFile", "SentPrintingFile")
+                        .WithMany()
+                        .HasForeignKey("SentPrintingFileId");
+
+                    b.HasOne("DiplomaModels.TargetPrinter", "TargetPrinter")
+                        .WithMany()
+                        .HasForeignKey("TargetPrinterId");
+
+                    b.Navigation("Sender");
+
+                    b.Navigation("SenderDevice");
+
+                    b.Navigation("SentPrintingFile");
+
+                    b.Navigation("TargetPrinter");
+                });
+
             modelBuilder.Entity("DiplomaModels.NetworkPrinter", b =>
                 {
                     b.HasOne("DiplomaModels.PrinterModel", "PrinterModel")
@@ -457,28 +522,7 @@ namespace DiplomaTry2.Migrations
                         .HasForeignKey("PrinterModelId");
                 });
 
-            modelBuilder.Entity("DiplomaModels.EventSuccessfulPrinting", b =>
-                {
-                    b.HasOne("DiplomaModels.SenderDevice", "SenderDevice")
-                        .WithMany()
-                        .HasForeignKey("SenderDeviceId");
-
-                    b.HasOne("DiplomaModels.Sender", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId");
-
-                    b.HasOne("DiplomaModels.SentPrintingFile", "SentPrintingFile")
-                        .WithMany()
-                        .HasForeignKey("SentPrintingFileId");
-
-                    b.Navigation("Sender");
-
-                    b.Navigation("SenderDevice");
-
-                    b.Navigation("SentPrintingFile");
-                });
-
-            modelBuilder.Entity("DiplomaModels.SenderDevice", b =>
+            modelBuilder.Entity("DiplomaModels.TargetPrinter", b =>
                 {
                     b.HasOne("DiplomaModels.NetworkPrinter", "NetworkPrinter")
                         .WithMany()

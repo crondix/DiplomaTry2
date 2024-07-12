@@ -22,15 +22,16 @@ namespace DiplomaTry2.Data
     //}
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DbSet<NetworkPrinter> NetworkPrinters { get; set; }
-        public DbSet<PrinterModel> PrinterModels { get; set; }
-        public DbSet<PaperSize> PaperSizes { get; set; }
-        public DbSet<EventSuccessfulPrinting> EventSuccessfulPrintings { get; set; }
-        public DbSet<PrintserverEvent> PrintserverEvents { get; set; }
-        public DbSet<SenderDevice> SenderDevice { get; set; }
-        public DbSet<SentPrintingFile> SentPrintingFile { get; set; }
-        public DbSet<Sender> Sender { get; set; }
-       
+        public DbSet<NetworkPrinter> NetworkPrinters { get; set; } = null!;
+        public DbSet<PrinterModel> PrinterModels { get; set; } = null!;
+        public DbSet<PaperSize> PaperSizes { get; set; } = null!;
+        public DbSet<EventSuccessfulPrinting> EventsSuccessfulPrinting { get; set; } = null!;
+        public DbSet<PrintserverEvent> PrintserverEvents { get; set; } = null!;
+        public DbSet<SenderDevice> SenderDevices { get; set; } = null!;
+        public DbSet<SentPrintingFile> SentPrintingFiles { get; set; } = null!;
+        public DbSet<Sender> Senders { get; set; } = null!;
+        public DbSet<TargetPrinter> TargetPrinters { get; set; } = null!;
+
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

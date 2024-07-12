@@ -9,14 +9,11 @@ namespace DiplomaTry2.Models
         private string pCName;
         private string printerName;
         private string port;
-        private int size;
+        private long size;
         private short page;
         private DateTime? dateTime;
 
-        //public EventPrint307()
-        //{  
 
-        //}
 
         /// <param name="docName">Param2 in Event 307 Properties</param>
         /// <param name="userName">Param3 in Event 307 Properties</param>
@@ -25,7 +22,7 @@ namespace DiplomaTry2.Models
         /// <param name="size">Param6 in Event 307 Properties</param>
         /// <param name="page">Param7 in Event 307 Properties</param>
         /// <param name="dateTime">Дата время события из журнала</param>
-        public EventPrint307(string docName, string userName, string pcName, string printerName, int size, short page, string port, DateTime? dateTime)
+        public EventPrint307(string docName, string userName, string pcName, string printerName, long size, short page, string port, DateTime? dateTime)
         {
             DocName = docName;
             UserName = userName;
@@ -65,7 +62,7 @@ namespace DiplomaTry2.Models
         /// <summary>
         /// Param7 in Event 307 Properties
         /// </summary>
-        public int Size { get => size; set => size = value; }
+        public long Size { get => size; set => size = value; }
 
         /// <summary>
         /// Param8 in Event 307 Properties

@@ -7,10 +7,10 @@ namespace DiplomaTry2.Services
 {
     public class EventLogService
     {
-       
 
-   
-        public List<EventRecord>? GetListEventLog(string remoteComputerName, string query, string logName, bool reverseDirection=false)
+
+
+        public async Task<List<EventRecord>?> GetListEventLogAsync(string remoteComputerName, string query, string logName, bool reverseDirection = false)
         {
             // Создание экземпляра EventLogSession для удаленного компьютера
             EventLogSession remoteSession = new EventLogSession(remoteComputerName);
@@ -21,23 +21,25 @@ namespace DiplomaTry2.Services
                 Session = remoteSession,
                 ReverseDirection = reverseDirection
             };
-            List<EventRecord> EventList = new List<EventRecord>();
+
+            List<EventRecord> eventList = new List<EventRecord>();
+
             try
             {
-                // Выполние запроса
-                using (EventLogReader logReader = new EventLogReader(eventQuery))
+                // Выполнение запроса в отдельном потоке
+                await Task.Run(() =>
                 {
-                    EventRecord eventInstance;
-                    while ((eventInstance = logReader.ReadEvent()) != null)
+                    using (EventLogReader logReader = new EventLogReader(eventQuery))
                     {
-                        EventList.Add(eventInstance);
-                       
+                        EventRecord eventInstance;
+                        while ((eventInstance = logReader.ReadEvent()) != null)
+                        {
+                            eventList.Add(eventInstance);
+                        }
                     }
-                    return EventList;
+                });
 
-                   
-
-                }
+                return eventList;
             }
             catch (EventLogException e)
             {
@@ -45,7 +47,7 @@ namespace DiplomaTry2.Services
                 return null;
             }
         }
-        public List<EventPrint307>? Get307PrintEvents()
+        public async  Task<List<EventPrint307>?> Get307PrintEventsListAsync()
         {
             //Имя удаленного пк/сервера
             string remoteComputerName = @"vm-print.kombinat.ru";
@@ -58,7 +60,7 @@ namespace DiplomaTry2.Services
             List<EventPrint307> Events307List = new List<EventPrint307>();
             try
             {
-                var Events = GetListEventLog(remoteComputerName,
+                var Events = await GetListEventLogAsync(remoteComputerName,
                 query,
                 logName,
                 true
@@ -66,23 +68,32 @@ namespace DiplomaTry2.Services
 
                 if (Events != null)
                 {
+                    
                     foreach (var item in Events)
                     {
+                        Console.WriteLine($"Docname: {item.Properties.ElementAt(1).Value}," +
+                            $" userName: {item.Properties.ElementAt(2).Value}, " +
+                            $"pcName: {item.Properties.ElementAt(3).Value} "+
+                            $"PrinterName: {item.Properties.ElementAt(4).Value} " +
+                            $"Size: {item.Properties.ElementAt(6).Value} " +
+                            $"Page: {item.Properties.ElementAt(7).Value} " +
+                            $"Data: {item.TimeCreated ?? null}"
+                            );
                         Events307List.Add(
                             new EventPrint307
                             (
                                 docName:
-                                item.Properties.ElementAt(2).Value.ToString(),
+                                item.Properties.ElementAt(1).Value.ToString(),
                                 userName:
-                                item.Properties.ElementAt(3).Value.ToString(),
+                                item.Properties.ElementAt(2).Value.ToString(),
                                 pcName:
-                                item.Properties.ElementAt(4).Value.ToString(),
+                                item.Properties.ElementAt(3).Value.ToString(),
                                 printerName:
-                                item.Properties.ElementAt(5).Value.ToString(),
+                                item.Properties.ElementAt(4).Value.ToString(),
                                 port:
-                                item.Properties.ElementAt(6).Value.ToString(),
+                                item.Properties.ElementAt(5).Value.ToString(),
                                 size:
-                                Convert.ToInt32(item.Properties.ElementAt(7).Value),
+                                Convert.ToInt64(item.Properties.ElementAt(6).Value),
                                 page:
                                 Convert.ToInt16(item.Properties.ElementAt(7).Value),
                                 dateTime:
@@ -93,12 +104,13 @@ namespace DiplomaTry2.Services
                 }
                 return null;
             }
-            catch (EventLogException e)
+            catch (Exception e)
             {
-                Console.WriteLine("Произошла ошибка при создании списка событий 307: {0} \n {1}", e.Message, e.InnerException);
+                Console.WriteLine("Произошла ошибка при создании списка событий 307: {0} \n {1} \n {2} \n {3}", e.Message, e.InnerException, e.Data, e.StackTrace );
 
                 return null;
             }
+           
 
         }
 

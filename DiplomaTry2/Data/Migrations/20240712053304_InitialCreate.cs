@@ -43,32 +43,46 @@ namespace DiplomaTry2.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Sender",
+                name: "SenderDevices",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NameNormalized = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    NameNormalized = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Sender", x => x.Id);
+                    table.PrimaryKey("PK_SenderDevices", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "SentPrintingFile",
+                name: "Senders",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Size = table.Column<int>(type: "int", nullable: false),
+                    NameNormalized = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Senders", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SentPrintingFiles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Size = table.Column<long>(type: "bigint", nullable: false),
                     Pages = table.Column<short>(type: "smallint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SentPrintingFile", x => x.Id);
+                    table.PrimaryKey("PK_SentPrintingFiles", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -114,27 +128,27 @@ namespace DiplomaTry2.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SenderDevice",
+                name: "TargetPrinters",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NameNormalized = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NameNormalized = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     NetworkPrinterId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SenderDevice", x => x.Id);
+                    table.PrimaryKey("PK_TargetPrinters", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SenderDevice_NetworkPrinters_NetworkPrinterId",
+                        name: "FK_TargetPrinters_NetworkPrinters_NetworkPrinterId",
                         column: x => x.NetworkPrinterId,
                         principalTable: "NetworkPrinters",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "PrintEvents",
+                name: "EventsSuccessfulPrinting",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -142,27 +156,53 @@ namespace DiplomaTry2.Migrations
                     DateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     SenderId = table.Column<int>(type: "int", nullable: true),
                     SenderDeviceId = table.Column<int>(type: "int", nullable: true),
+                    TargetPrinterId = table.Column<int>(type: "int", nullable: true),
                     SentPrintingFileId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PrintEvents", x => x.Id);
+                    table.PrimaryKey("PK_EventsSuccessfulPrinting", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PrintEvents_SenderDevice_SenderDeviceId",
+                        name: "FK_EventsSuccessfulPrinting_SenderDevices_SenderDeviceId",
                         column: x => x.SenderDeviceId,
-                        principalTable: "SenderDevice",
+                        principalTable: "SenderDevices",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_PrintEvents_Sender_SenderId",
+                        name: "FK_EventsSuccessfulPrinting_Senders_SenderId",
                         column: x => x.SenderId,
-                        principalTable: "Sender",
+                        principalTable: "Senders",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_PrintEvents_SentPrintingFile_SentPrintingFileId",
+                        name: "FK_EventsSuccessfulPrinting_SentPrintingFiles_SentPrintingFileId",
                         column: x => x.SentPrintingFileId,
-                        principalTable: "SentPrintingFile",
+                        principalTable: "SentPrintingFiles",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_EventsSuccessfulPrinting_TargetPrinters_TargetPrinterId",
+                        column: x => x.TargetPrinterId,
+                        principalTable: "TargetPrinters",
                         principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventsSuccessfulPrinting_SenderDeviceId",
+                table: "EventsSuccessfulPrinting",
+                column: "SenderDeviceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventsSuccessfulPrinting_SenderId",
+                table: "EventsSuccessfulPrinting",
+                column: "SenderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventsSuccessfulPrinting_SentPrintingFileId",
+                table: "EventsSuccessfulPrinting",
+                column: "SentPrintingFileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventsSuccessfulPrinting_TargetPrinterId",
+                table: "EventsSuccessfulPrinting",
+                column: "TargetPrinterId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_NetworkPrinters_PrinterModelId",
@@ -187,23 +227,32 @@ namespace DiplomaTry2.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PrintEvents_SenderDeviceId",
-                table: "PrintEvents",
-                column: "SenderDeviceId");
+                name: "IX_PrintserverEvents_Code",
+                table: "PrintserverEvents",
+                column: "Code",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PrintEvents_SenderId",
-                table: "PrintEvents",
-                column: "SenderId");
+                name: "IX_SenderDevices_NameNormalized",
+                table: "SenderDevices",
+                column: "NameNormalized",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PrintEvents_SentPrintingFileId",
-                table: "PrintEvents",
-                column: "SentPrintingFileId");
+                name: "IX_Senders_NameNormalized",
+                table: "Senders",
+                column: "NameNormalized",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_SenderDevice_NetworkPrinterId",
-                table: "SenderDevice",
+                name: "IX_TargetPrinters_NameNormalized",
+                table: "TargetPrinters",
+                column: "NameNormalized",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TargetPrinters_NetworkPrinterId",
+                table: "TargetPrinters",
                 column: "NetworkPrinterId");
         }
 
@@ -211,22 +260,25 @@ namespace DiplomaTry2.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "PaperSizes");
+                name: "EventsSuccessfulPrinting");
 
             migrationBuilder.DropTable(
-                name: "PrintEvents");
+                name: "PaperSizes");
 
             migrationBuilder.DropTable(
                 name: "PrintserverEvents");
 
             migrationBuilder.DropTable(
-                name: "SenderDevice");
+                name: "SenderDevices");
 
             migrationBuilder.DropTable(
-                name: "Sender");
+                name: "Senders");
 
             migrationBuilder.DropTable(
-                name: "SentPrintingFile");
+                name: "SentPrintingFiles");
+
+            migrationBuilder.DropTable(
+                name: "TargetPrinters");
 
             migrationBuilder.DropTable(
                 name: "NetworkPrinters");
