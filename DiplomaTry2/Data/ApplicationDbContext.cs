@@ -31,6 +31,8 @@ namespace DiplomaTry2.Data
         public DbSet<SentPrintingFile> SentPrintingFiles { get; set; } = null!;
         public DbSet<Sender> Senders { get; set; } = null!;
         public DbSet<TargetPrinter> TargetPrinters { get; set; } = null!;
+        public DbSet<DocumentName> DocumentNames { get; set; } = null!;
+        public DbSet<ChangeLog> ChangeLogs { get; set; } = null!;
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

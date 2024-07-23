@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DiplomaTry2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240712053304_InitialCreate")]
+    [Migration("20240722110458_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,36 @@ namespace DiplomaTry2.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("DiplomaModels.ChangeLog", b =>
+                {
+                    b.Property<string>("TableName")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("TableName");
+
+                    b.ToTable("ChangeLogs");
+                });
+
+            modelBuilder.Entity("DiplomaModels.DocumentName", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("DocumentNames");
+                });
 
             modelBuilder.Entity("DiplomaModels.EventSuccessfulPrinting", b =>
                 {
@@ -240,9 +270,8 @@ namespace DiplomaTry2.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Nameid")
+                        .HasColumnType("int");
 
                     b.Property<short>("Pages")
                         .HasColumnType("smallint");
@@ -251,6 +280,8 @@ namespace DiplomaTry2.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Nameid");
 
                     b.ToTable("SentPrintingFiles");
                 });
@@ -523,6 +554,17 @@ namespace DiplomaTry2.Migrations
                     b.HasOne("DiplomaModels.PrinterModel", null)
                         .WithMany("PaperSizes")
                         .HasForeignKey("PrinterModelId");
+                });
+
+            modelBuilder.Entity("DiplomaModels.SentPrintingFile", b =>
+                {
+                    b.HasOne("DiplomaModels.DocumentName", "Name")
+                        .WithMany()
+                        .HasForeignKey("Nameid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Name");
                 });
 
             modelBuilder.Entity("DiplomaModels.TargetPrinter", b =>

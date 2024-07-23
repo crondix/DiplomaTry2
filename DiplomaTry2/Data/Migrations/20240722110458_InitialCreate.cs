@@ -12,6 +12,31 @@ namespace DiplomaTry2.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "ChangeLogs",
+                columns: table => new
+                {
+                    TableName = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChangeLogs", x => x.TableName);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DocumentNames",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DocumentNames", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PrinterModels",
                 columns: table => new
                 {
@@ -76,13 +101,19 @@ namespace DiplomaTry2.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Nameid = table.Column<int>(type: "int", nullable: false),
                     Size = table.Column<long>(type: "bigint", nullable: false),
                     Pages = table.Column<short>(type: "smallint", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SentPrintingFiles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SentPrintingFiles_DocumentNames_Nameid",
+                        column: x => x.Nameid,
+                        principalTable: "DocumentNames",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -245,6 +276,11 @@ namespace DiplomaTry2.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_SentPrintingFiles_Nameid",
+                table: "SentPrintingFiles",
+                column: "Nameid");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TargetPrinters_NameNormalized",
                 table: "TargetPrinters",
                 column: "NameNormalized",
@@ -259,6 +295,9 @@ namespace DiplomaTry2.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ChangeLogs");
+
             migrationBuilder.DropTable(
                 name: "EventsSuccessfulPrinting");
 
@@ -279,6 +318,9 @@ namespace DiplomaTry2.Migrations
 
             migrationBuilder.DropTable(
                 name: "TargetPrinters");
+
+            migrationBuilder.DropTable(
+                name: "DocumentNames");
 
             migrationBuilder.DropTable(
                 name: "NetworkPrinters");

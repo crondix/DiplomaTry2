@@ -47,10 +47,11 @@ namespace DiplomaTry2.Services
                 return null;
             }
         }
-        public async  Task<List<EventPrint307>?> Get307PrintEventsListAsync()
+        /// <param name="remoteComputerName">Имя удаленного пк/сервера</param>
+        public async  Task<List<EventPrint307>?> Get307PrintEventsListAsync( string remoteComputerName= @"vm-print")
         {
-            //Имя удаленного пк/сервера
-            string remoteComputerName = @"vm-print.kombinat.ru";
+            
+          
 
             // Имя журнала
             string logName = "Microsoft-Windows-PrintService/Operational";

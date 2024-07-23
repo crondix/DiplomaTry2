@@ -1,15 +1,10 @@
 ﻿using DiplomaModels;
-using DiplomaTry2.InterFaces;
-using System.Net.Http;
-using System.Text.Json;
 
-using DiplomaTry2.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore.Internal;
 using DiplomaTry2.Data;
+using DiplomaTry2.Services;
+
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using DiplomaTry2.Models;
 
 namespace DiplomaTry2.Components.Pages
 {
@@ -64,13 +59,14 @@ namespace DiplomaTry2.Components.Pages
                 await using (var context = DbContextFactory.CreateDbContext())
                 {
                     EventsSuccessfulPrinting = await context.EventsSuccessfulPrinting
-                        .Include(e=>e.SenderDevice)
-                         .Include(e=>e.TargetPrinter)
+                        .Include(e => e.SenderDevice)
+                         .Include(e => e.TargetPrinter)
                           .ThenInclude(d => d.NetworkPrinter)
                             .ThenInclude(np => np.PrinterModel)
                               .ThenInclude(pm => pm.PaperSizes)
-                        .Include(e=>e.Sender)
-                        .Include(e=>e.SentPrintingFile)
+                        .Include(e => e.Sender)
+                        .Include(e => e.SentPrintingFile)
+                         .ThenInclude(dn=>dn.Name)
                         .OrderBy(record => record.DateTime).Reverse()
                           .Take(50)
                         .ToListAsync();
