@@ -76,7 +76,6 @@ namespace DiplomaTry2
             
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress =  new Uri("https://localhost:7197/") });
             builder.Services.AddDevExpressBlazor(configure => configure.BootstrapVersion = BootstrapVersion.v5);
-            builder.Configuration.AddJsonFile("config.json");
             builder.Services.AddScoped<PrintServerService>();
             builder.Services.AddScoped<EventLogService>();
             builder.Services.AddScoped<EventLogProcessingService>();
@@ -85,7 +84,7 @@ namespace DiplomaTry2
 
 
             var app = builder.Build();
-            
+           
             // Apply migrations at startup
             //using (var scope = app.Services.CreateScope())
             //{
@@ -146,13 +145,13 @@ namespace DiplomaTry2
             app.MapGet("/printerList", () =>
             {
                 PrintServerService printServerService = new PrintServerService();
-                return Results.Json(printServerService.GetListPrintersInfoFromPrintServer(@"\\vm-print"));
+                return Results.Json(printServerService.GetListNetPrintersInfoFromPrintServer(@$"{app.Configuration["printserver:name"].ToString()}"));
             });
 
             app.MapGet("/printerModelsList", () =>
             {
                 PrintServerService printServerService = new PrintServerService();
-                return Results.Json(printServerService.GetPrintersModelsList(@"\\vm-print"));
+                return Results.Json(printServerService.GetPrintersModelsList(@$"{app.Configuration["printserver:name"].ToString()}"));
             });
 
 

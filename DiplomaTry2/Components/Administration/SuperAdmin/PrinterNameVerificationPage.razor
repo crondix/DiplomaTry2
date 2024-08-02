@@ -220,7 +220,7 @@
 
         try
         {
-            PrinterModelsFromPrintServer = await printServerService.GetPrintersModelsListAsync(@"\\vm-print");
+            PrinterModelsFromPrintServer = await printServerService.GetPrintersModelsListAsync($@"{appConfig["printserver:name"].ToString()}");
             await using var DbContext = DbContextFactory.CreateDbContext();
             PrinterModelsFromBD = DbContext.PrinterModels.ToList();
             foreach (var printer in PrinterModelsFromPrintServer.ToList())
@@ -239,28 +239,28 @@
 
 
     }
-    async Task LoadDataHTTP()
-    {
-        Loading = true;
-        var response = await httpClient.GetAsync("/printerModelsList");
+    // async Task LoadDataHTTP()
+    // {
+    //     Loading = true;
+    //     var response = await httpClient.GetAsync("/printerModelsList");
 
 
-        if (response.IsSuccessStatusCode)
-        {
-            var result = await response.Content.ReadAsStringAsync();
-            PrinterModelsFromPrintServer = JsonSerializer.Deserialize<List<PrinterModel>>(result);
-        }
-        else
-        {
-            var error = await response.Content.ReadFromJsonAsync<Error>();
-            if (error != null) message = error.Details;
-        }
-    }
+    //     if (response.IsSuccessStatusCode)
+    //     {
+    //         var result = await response.Content.ReadAsStringAsync();
+    //         PrinterModelsFromPrintServer = JsonSerializer.Deserialize<List<PrinterModel>>(result);
+    //     }
+    //     else
+    //     {
+    //         var error = await response.Content.ReadFromJsonAsync<Error>();
+    //         if (error != null) message = error.Details;
+    //     }
+    // }
 
-    protected override async Task OnInitializedAsync()
-    {
+    // protected override async Task OnInitializedAsync()
+    // {
 
-    }
+    // }
     class Error
     {
         public string Details { get; set; } = "";

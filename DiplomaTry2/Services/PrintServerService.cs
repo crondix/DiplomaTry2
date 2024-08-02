@@ -23,7 +23,7 @@ namespace DiplomaTry2.Services
         //[Inject]
         //private EventLogService EventLog { get; set; }
 
-        public List<NetworkPrinter> GetListPrintersInfoFromPrintServer(string printServerName)
+        public List<NetworkPrinter> GetListNetPrintersInfoFromPrintServer(string printServerName)
         {
             List<NetworkPrinter> printers = new List<NetworkPrinter>();
 
@@ -34,7 +34,7 @@ namespace DiplomaTry2.Services
 
                 foreach (var printQueue in printCollection)
                 {
-                    var printer = GetPrinterInfo(printQueue);
+                    var printer = GetNetPrinterInfo(printQueue);
                     if (printer != null)
                     {
                         printers.Add(printer);
@@ -152,7 +152,7 @@ namespace DiplomaTry2.Services
                 return null;
             }
         }
-        public NetworkPrinter? GetPrinterInfo(PrintQueue printQueue)
+        public NetworkPrinter? GetNetPrinterInfo(PrintQueue printQueue)
         {
             try
             {

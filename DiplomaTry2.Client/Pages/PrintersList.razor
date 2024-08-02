@@ -6,101 +6,106 @@
 @page "/NetworkPrintersList"
 @rendermode RenderMode.InteractiveWebAssembly
 @inject HttpClient httpClient
-
+@inject IConfiguration config
 
 
 <div>@message</div>
-<table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Share Name</th>
-                    <th>Comment</th>
-                    <th>ip</th>
-                    <th>Name</th>
 
-                </tr>
-            </thead>
-@if (printers is not null)
-{
-     
-             <tbody>
-    @foreach (var printer in printers)
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>̄̄̌№</th>
+            <th>Share Name</th>
+            <th>Comment</th>
+            <th>ip</th>
+            <th>Name</th>
+
+        </tr>
+    </thead>
+    @if (printers is not null)
     {
-         <tr>
+
+        <tbody>
+            @* @foreach (var printer in printers) *@
+            @for (int i = 0; i < printers.Count; i++)
+            {
+                printer = printers[i];
+                <tr>
+                    <td>@(i + 1)</td>
                     <td class="align-content-center">@printer.ShareName</td>
                     <td class="align-content-center">@printer.Comment</td>
                     <td class="align-content-center">@printer.Ip</td>
                     <td class="align-content-center">@printer.PrinterModel?.ModelName</td>
-              
 
-         </tr>
-    }
+
+                </tr>
+            }
         </tbody>
     }
     else if (Loading)
     {
-        
-            <tbody>
 
-                <tr>
-                    <td class="align-content-center  placeholder-glow"><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
-                </tr>
-                <tr>
-                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center  placeholder-glow"><span class="placeholder col-6"></span></td>
-                </tr>
-                <tr>
-                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
-                    <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
-                </tr>
+        <tbody>
+
+            <tr>
+                <td class="align-content-center  placeholder-glow"><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  placeholder-glow"><span class="placeholder col-6"></span></td>
+                <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
+            </tr>
+            <tr>
+                <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  placeholder-glow"><span class="placeholder col-6"></span></td>
+            </tr>
+            <tr>
+                <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center  placeholder-glow "><span class="placeholder col-6"></span></td>
+                <td class="align-content-center placeholder-glow "><span class="placeholder col-6"></span></td>
+            </tr>
         </tbody>
     }
     else
     {
         <tbody>
-                <tr>
-                    <td colspan="4"><div class="w-100 d-flex justify-content-center p-8"><button class="btn btn-primary" @onclick="LoadingData">Get Date</button></div></td>
-                </tr>
+            <tr>
+                <td colspan="5"><div class="w-100 d-flex justify-content-center p-8"><button class="btn btn-primary" @onclick="LoadingData">Get Date</button></div></td>
+            </tr>
         </tbody>
-       
+
     }
 </table>
 @code {
+    NetworkPrinter printer { get; set; }
+    List<NetworkPrinter>? printers { get; set; }
+    string message { get; set; }
+    bool Loading = false;
+    async Task LoadingData()
+    {
+        Loading = true;
+        var response = await httpClient.GetAsync("/printerlist");
 
-        List<NetworkPrinter>? printers;
-        string message;
-        bool Loading = false;
-        async Task LoadingData()
+
+        if (response.IsSuccessStatusCode)
         {
-            Loading = true;
-            var response = await httpClient.GetAsync("/printerlist");
-
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsStringAsync();
-                printers = JsonSerializer.Deserialize<List<NetworkPrinter>>(result);
-            }
-            else
-            {
-                var error = await response.Content.ReadFromJsonAsync<Error>();
-                if (error != null) message = error.Details;
-            }
-
+            var result = await response.Content.ReadAsStringAsync();
+            printers = JsonSerializer.Deserialize<List<NetworkPrinter>>(result);
         }
+        else
+        {
+            var error = await response.Content.ReadFromJsonAsync<Error>();
+            if (error != null) message = error.Details;
+        }
+
+    }
     class Error
     {
         public string Details { get; set; } = "";
     }
-    protected override void OnInitialized()
-    {
-        
-    }
-    }
+
+}

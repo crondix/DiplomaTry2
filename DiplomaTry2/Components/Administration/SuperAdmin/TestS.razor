@@ -66,10 +66,10 @@ else
 
 @code {
     List<PrinterModel>? PrinterModels;
-
+  
     protected override async Task OnInitializedAsync()
     {
-        PrinterModels = await printServerService.GetPrintersModelsListAsync(@"\\vm-print");
+        PrinterModels = await printServerService.GetPrintersModelsListAsync($@"{appConfig["printserver:name"].ToString()}");
 
 
     }

@@ -31,17 +31,17 @@ namespace DiplomaTry2.Services
 
                     List<EventSuccessfulPrinting>? exist;
                     //var exist = events.ExceptBy(context.EventsSuccessfulPrinting, o => o.DateTime);
-                    var lastEventDB = context.EventsSuccessfulPrinting.OrderByDescending(o => o.DateTime).FirstOrDefault();
+                    var lastEventDB = context.EventsSuccessfulPrinting.LastOrDefault();
 
                     if (lastEventDB is null)
                     {
                         exist = events;
-                        exist.Reverse();
+                        //exist.Reverse();
                     }
                     else
                     {
                         exist = events.Where(w => w.DateTime > lastEventDB.DateTime).ToList();
-                        exist.Reverse();
+                        //exist.Reverse();
                     }
 
                     if (!exist.Any())
