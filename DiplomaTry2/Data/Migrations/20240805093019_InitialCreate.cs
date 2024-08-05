@@ -29,7 +29,7 @@ namespace DiplomaTry2.Migrations
                 {
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    name = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -214,6 +214,12 @@ namespace DiplomaTry2.Migrations
                         principalTable: "TargetPrinters",
                         principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DocumentNames_name",
+                table: "DocumentNames",
+                column: "name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_EventsSuccessfulPrinting_SenderDeviceId",

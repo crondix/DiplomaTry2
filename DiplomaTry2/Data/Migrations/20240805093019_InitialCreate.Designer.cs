@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DiplomaTry2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240722110458_InitialCreate")]
+    [Migration("20240805093019_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -48,9 +48,12 @@ namespace DiplomaTry2.Migrations
 
                     b.Property<string>("name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("id");
+
+                    b.HasIndex("name")
+                        .IsUnique();
 
                     b.ToTable("DocumentNames");
                 });
