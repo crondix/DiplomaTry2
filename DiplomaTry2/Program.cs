@@ -79,6 +79,10 @@ namespace DiplomaTry2
             builder.Services.AddScoped<PrintServerService>();
             builder.Services.AddScoped<EventLogService>();
             builder.Services.AddScoped<EventLogProcessingService>();
+            builder.Services.AddScoped<NetPrintersService>();
+            builder.Services.AddScoped<ComparisonService>();
+           
+           
 
             
 
@@ -142,17 +146,17 @@ namespace DiplomaTry2
 
 
 
-            app.MapGet("/printerList", () =>
-            {
-                PrintServerService printServerService = new PrintServerService();
-                return Results.Json(printServerService.GetListNetPrintersInfoFromPrintServer(@$"{app.Configuration["printserver:name"].ToString()}"));
-            });
+            //app.MapGet("/printerList", () =>
+            //{
+            //    PrintServerService printServerService = new PrintServerService();
+            //    return Results.Json(printServerService.GetListNetPrintersInfoFromPrintServer(@$"{app.Configuration["printserver:name"].ToString()}"));
+            //});
 
-            app.MapGet("/printerModelsList", () =>
-            {
-                PrintServerService printServerService = new PrintServerService();
-                return Results.Json(printServerService.GetPrintersModelsList(@$"{app.Configuration["printserver:name"].ToString()}"));
-            });
+            //app.MapGet("/printerModelsList", () =>
+            //{
+            //    PrintServerService printServerService = new PrintServerService();
+            //    return Results.Json(printServerService.GetPrintersModelsList(@$"{app.Configuration["printserver:name"].ToString()}"));
+            //});
 
 
 

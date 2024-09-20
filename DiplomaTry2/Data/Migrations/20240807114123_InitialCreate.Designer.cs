@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DiplomaTry2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240805093019_InitialCreate")]
+    [Migration("20240807114123_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -107,9 +107,20 @@ namespace DiplomaTry2.Migrations
                         .HasAnnotation("Relational:JsonPropertyName", "comment");
 
                     b.Property<string>("Ip")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "ip");
+
+                    b.Property<bool>("IsOnline")
+                        .HasColumnType("bit")
+                        .HasAnnotation("Relational:JsonPropertyName", "isOnline");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "Name");
+
+                    b.Property<string>("NonIPAddress")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PrinterModelId")
                         .HasColumnType("int");
@@ -117,7 +128,7 @@ namespace DiplomaTry2.Migrations
                     b.Property<string>("ShareName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "name");
+                        .HasAnnotation("Relational:JsonPropertyName", "ShareName");
 
                     b.HasKey("Id");
 

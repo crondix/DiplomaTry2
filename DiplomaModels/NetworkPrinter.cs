@@ -7,9 +7,10 @@ namespace DiplomaModels
     public class NetworkPrinter
     {
         
+        private string name;
 
         private string shareName;
-
+       
         private string comment;
 
         private string ip;
@@ -33,11 +34,20 @@ namespace DiplomaModels
         ///// </summary>
         [JsonPropertyName("PrinterModel")]
         public virtual PrinterModel? PrinterModel { get; set; } // Навигационное свойство
+
+        ///// <summary>
+        ///// имя принтера
+        ///// </summary>
+        [JsonPropertyName("Name")]
+        public string? Name { get; set; }
+
         ///// <summary>
         ///// имя принтера, которое пользователи видят по сети, когда он находится в общем доступе.
         ///// </summary>
-        [JsonPropertyName("name")]
-        public string ShareName { get; set; }
+        [JsonPropertyName("ShareName")]
+        public string? ShareName { get; set; }
+
+
 
         /// <summary>
         /// Получает или задает комментарий к принтеру.
@@ -49,12 +59,13 @@ namespace DiplomaModels
         /// Ip адрес принтера
         /// </summary>
         [JsonPropertyName("ip")]
-        public string Ip
+        public string? Ip
         {
             get { return ip; }
             set
             {
-                if (CheckingValidIPAddress(value))
+               if (value == null) { ip = value; }
+               else if (CheckingValidIPAddress(value))
                 {
                     ip = value;
                 }
@@ -64,9 +75,9 @@ namespace DiplomaModels
                 }
             }
         }
-     
+        public string? NonIPAddress {  get; set; }
 
-        [NotMapped]
+       
         [JsonPropertyName("isOnline")]
         public bool IsOnline
         {
@@ -80,13 +91,6 @@ namespace DiplomaModels
             return IPAddress.TryParse(ipAddress, out address);
         }
 
-        ///// <summary>
-        ///// имя принтера, которое пользователи видят по сети, когда он находится в общем доступе.
-        ///// </summary>
-        //public string ShareName
-        //{
-        //    get { return shareName; }
-        //        set { shareName = value; }
-        //}
+ 
     }
 }

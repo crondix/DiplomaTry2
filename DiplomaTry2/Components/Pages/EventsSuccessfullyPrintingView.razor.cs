@@ -27,21 +27,38 @@ namespace DiplomaTry2.Components.Pages
         bool IsCheked = false;
         bool? IsAdditionSuccessful;
         string AdditionErrorMessage = "";
+        double _procent=0;
+        double _currentItem = 0;
+        double _totalyItem = 0;
+        
+        private void OnProgressChanged(int percent, int currentItem, int totalyItem)
+        {
+            InvokeAsync(() =>
+            {
+                _procent = percent;
+                _currentItem = currentItem;
+                _totalyItem= totalyItem;
+                StateHasChanged();
+            });
+           
+        }
 
 
 
-
-
-        async Task Actualization()
+            async Task Actualization()
         {
             try
             {
+                
+                eventLogProcessing.AddProgressChanged += OnProgressChanged;
+                eventLogProcessing.Error += (string _message) => { IsAdditionSuccessful = false; AdditionErrorMessage = _message; Adding = false; return; };
                 Adding = true;
-                await eventLogProcessing?.DbActualization();
+                
+               await eventLogProcessing?.DbActualizationAsync();
                 await LoadData();
                 Adding = false;
                 Loading = !Loading;
-                IsAdditionSuccessful = true;
+                IsAdditionSuccessful = true; 
             }
             catch (Exception e)
             {
@@ -82,10 +99,7 @@ namespace DiplomaTry2.Components.Pages
         }
 
 
-        //protected override async Task OnInitializedAsync()
-        //{
-
-        //}
+      
 
     }
 }

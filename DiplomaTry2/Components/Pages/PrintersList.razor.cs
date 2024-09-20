@@ -1,17 +1,13 @@
-﻿using DevExpress.Pdf.Native;
-
-using DiplomaModels;
-
+﻿using DiplomaModels;
 using DiplomaTry2.Data;
 using DiplomaTry2.Services;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace DiplomaTry2.Components.Pages
 {
-    public partial class NetPrinters
+    public partial class PrintersList
     {
         [Inject]
         PrintServerService printserver { get; set; }
@@ -22,14 +18,20 @@ namespace DiplomaTry2.Components.Pages
         [Inject]
         private IDbContextFactory<ApplicationDbContext> _contextFactory { get; set; }
 
-        async Task NetworkPrinterAddToDB()
-        {
-            await using (var context = _contextFactory.CreateDbContext())
-            {
-                List<NetworkPrinter>? printers = printserver.GetListNetPrintersInfoFromPrintServer($@"{AppConfig["printserver:name"]}");
-               await nps.AddListNetworkPrinterToDBAsync(printers, context);
-           }
-        }
+        NetworkPrinter printer { get; set; }
+        List<NetworkPrinter>? printers { get; set; }
+        string message { get; set; }
+        bool Loading = false;
 
+        class Error
+        {
+            public string Details { get; set; } = "";
+        }
+        async Task LoadingData()
+        {
+            Loading = true;
+            printers = service.GetListNetPrintersInfoFromPrintServer(@$"{AppConfig["printserver:name"].ToString()}");
+
+        }
     }
 }

@@ -123,9 +123,12 @@ namespace DiplomaTry2.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PrinterModelId = table.Column<int>(type: "int", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ShareName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Ip = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Ip = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NonIPAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsOnline = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

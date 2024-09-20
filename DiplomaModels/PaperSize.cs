@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace DiplomaModels
 {
     /// <summary>
-    /// Класс описывает форматы бумаги A4, A3 и т.д.
+    /// Класс описывает форматы бумаги A4, A3 и т.д. 
     /// </summary>
     [Index(nameof(Name), IsUnique = true)]
     public class PaperSize

@@ -5,11 +5,10 @@
     Printer Name Verification @if (IsAdditionSuccessful is not null)
     {
         <span class="@(IsAdditionSuccessful??false?"bg-success":"bg-warning")">
-            @(IsAdditionSuccessful ?? false ? "Добавление выполнено успешно" : $" Произошла ошибка: {AdditionErrorMessage}")
+            @(IsAdditionSuccessful ?? false ? "Актуализация выполнена успешно" : $" Произошла ошибка: {AdditionErrorMessage}")
         </span>
     }
 </h3>
-
 <div class="row">
     <div class="col-12 d-flex justify-content-end">
         <button class="btn btn-primary m-sm-1" @onclick="LoadData">Запросить данные из базы данных</button>
@@ -60,7 +59,7 @@
                                     @(sEvent.SenderDevice?.NameNormalized ?? "null")
                                 </td>
                                 <td class="align-content-center">
-                                    @(sEvent.TargetPrinter?.NetworkPrinter?.ShareName
+                                    @(sEvent.TargetPrinter?.NetworkPrinter?.Name
                                     ?? 
                                     sEvent.TargetPrinter?.Name
                                     ?? 
@@ -169,7 +168,19 @@
             </table>
             @if (Adding)
             {
-                <div class="position-absolute top-0 bottom-0 start-0 end-0 mt-0 bg-dark opacity-25 d-flex justify-content-center align-content-center">
+               
+                <div class="position-absolute top-0 bottom-0 start-0 end-0 mt-0  d-flex justify-content-center align-content-center">
+                    <div class="text-white w-100 justify-content-center h1 d-flex m-0 p-1" style="background-color:color-mix(in srgb, grey 80%, transparent)">
+                        @if (_procent==0)
+                        {
+                            <span>Getting events</span>
+                        }
+                        else
+                        {
+                            <span>  Completed: @(_procent)%  (@(_currentItem) items out of @(_totalyItem) items)</span>
+                        }
+                      
+                        </div>
                 </div>
             }
         </div>

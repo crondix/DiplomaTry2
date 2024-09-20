@@ -220,7 +220,7 @@
 
         try
         {
-            PrinterModelsFromPrintServer = await printServerService.GetPrintersModelsListAsync($@"{appConfig["printserver:name"].ToString()}");
+            PrinterModelsFromPrintServer = await printServerService.GetNetworkPrintersModelsListAsync($@"{appConfig["printserver:name"].ToString()}");
             await using var DbContext = DbContextFactory.CreateDbContext();
             PrinterModelsFromBD = DbContext.PrinterModels.ToList();
             foreach (var printer in PrinterModelsFromPrintServer.ToList())

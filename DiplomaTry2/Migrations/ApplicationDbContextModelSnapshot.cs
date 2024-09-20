@@ -104,9 +104,20 @@ namespace DiplomaTry2.Migrations
                         .HasAnnotation("Relational:JsonPropertyName", "comment");
 
                     b.Property<string>("Ip")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "ip");
+
+                    b.Property<bool>("IsOnline")
+                        .HasColumnType("bit")
+                        .HasAnnotation("Relational:JsonPropertyName", "isOnline");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "Name");
+
+                    b.Property<string>("NonIPAddress")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PrinterModelId")
                         .HasColumnType("int");
@@ -114,7 +125,7 @@ namespace DiplomaTry2.Migrations
                     b.Property<string>("ShareName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "name");
+                        .HasAnnotation("Relational:JsonPropertyName", "ShareName");
 
                     b.HasKey("Id");
 

@@ -18,12 +18,38 @@ using System.Diagnostics.Eventing.Reader;
 namespace DiplomaTry2.Services
 {
 
-    public class PrintServerService 
+    public class PrintServerService
     {
         //[Inject]
         //private EventLogService EventLog { get; set; }
 
         public List<NetworkPrinter> GetListNetPrintersInfoFromPrintServer(string printServerName)
+        {
+            List<NetworkPrinter> printers = new List<NetworkPrinter>();
+
+            try
+            {
+                PrintServer printServer = new PrintServer(printServerName);
+                PrintQueueCollection printCollection = printServer.GetPrintQueues();
+
+                foreach (var printQueue in printCollection)
+                {
+                    var printer = GetNetPrinterInfo(printQueue);
+                    if (printer != null)
+                    {
+                        printers.Add(printer);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Ошибка: {e.Message} ");
+                Console.WriteLine($"{e.StackTrace}");
+            }
+
+            return printers;
+        }
+        public List<NetworkPrinter> GetListAllPrintersInfoFromPrintServer(string printServerName)
         {
             List<NetworkPrinter> printers = new List<NetworkPrinter>();
 
@@ -87,9 +113,42 @@ namespace DiplomaTry2.Services
                     return null;
                 }
             }
-            else  return null;
+            else return null;
         }
-        public async Task<List<PrinterModel>> GetPrintersModelsListAsync(string? printServerName)
+        public async Task<List<PrinterModel>> GetAllPrintersModelsListAsync(string? printServerName)
+        {
+            if (printServerName is not null)
+            {
+                List<PrinterModel> printersModels = new List<PrinterModel>();
+
+                try
+                {
+                    PrintServer printServer = new PrintServer(printServerName);
+                    PrintQueueCollection printCollection = printServer.GetPrintQueues();
+
+                    foreach (var printQueue in printCollection)
+                    {
+                        if (printersModels.FirstOrDefault(o => o.ModelName == printQueue.QueueDriver.Name) is null)
+                        {
+                            printersModels.Add(new PrinterModel
+                            {
+                                ModelName = printQueue.QueueDriver.Name
+                            });
+                        }
+                    }
+
+                    return printersModels;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"GetPrinterInfoAsync Ошибка: {e.Message} ");
+                    Console.WriteLine($"{e.StackTrace}");
+                    return null;
+                }
+            }
+            else return null;
+        }
+        public async Task<List<PrinterModel>> GetNetworkPrintersModelsListAsync(string? printServerName)
         {
             if (string.IsNullOrWhiteSpace(printServerName))
             {
@@ -107,10 +166,10 @@ namespace DiplomaTry2.Services
 
                     foreach (var printQueue in printCollection.ToList())
                     {
-                        if (printQueue.QueuePort?.Name is not null && IPAddress.TryParse(printQueue.QueuePort.Name, out IPAddress _))
-                        {
-                            if (!printQueue.IsOffline)
-                            {
+                        //if (printQueue.QueuePort?.Name is not null && IPAddress.TryParse(printQueue.QueuePort.Name, out IPAddress _))
+                        //{
+                        //    if (!printQueue.IsOffline)
+                        //    {
                                 if (printersModels.FirstOrDefault(o => o.ModelName == printQueue.QueueDriver.Name) is null)
                                 {
                                     try
@@ -138,8 +197,8 @@ namespace DiplomaTry2.Services
                                         });
                                     }
                                 }
-                            }
-                        }
+                        //    }
+                        //}
                     }
 
                     return printersModels;
@@ -159,17 +218,20 @@ namespace DiplomaTry2.Services
                 IPAddress printIp;
                 if (printQueue.QueuePort.Name is not null && IPAddress.TryParse(printQueue.QueuePort.Name, out printIp))
                 {
-                    if (!printQueue.IsOffline)
+                    if (printQueue.Name == "PR_COLOR" || printQueue.ShareName == "PR_COLOR")
                     {
-
-                        //var printInfoFromSNMP = InfoFromSNMP.GetPrintersInfo(printQueue.QueuePort.Name);
-                        //var SNMPName = printInfoFromSNMP?.FirstOrDefault(k => k.Key == "Name").Value;
-                        string name = printQueue.QueueDriver.Name;
-                        var test = printQueue.QueuePort;
-
-                        //var modelSource = SNMPName != null ? "SNMPName" : "printQueue.QueueDriver.Name";
+                        Console.WriteLine("PR_COLOR IS FOUND!!!!!!!!");
+                    }
+                    //var printInfoFromSNMP = InfoFromSNMP.GetPrintersInfo(printQueue.QueuePort.Name);
+                    //var SNMPName = printInfoFromSNMP?.FirstOrDefault(k => k.Key == "Name").Value;
+                    string name = printQueue.QueueDriver.Name;
+                    var test = printQueue.QueuePort;
+                    //var modelSource = SNMPName != null ? "SNMPName" : "printQueue.QueueDriver.Name";
+                    try
+                    {
                         return new NetworkPrinter
                         {
+                            Name = printQueue.Name,
                             ShareName = printQueue.ShareName,
                             Comment = printQueue.Comment,
                             Ip = printQueue.QueuePort.Name,
@@ -177,13 +239,61 @@ namespace DiplomaTry2.Services
                             {
                                 ModelName = name,
                             },
+                            IsOnline = !printQueue.IsOffline,
 
+                        };
+                    }
+                    catch (PrintQueueException ex)
+                    {
+                        // Если возникает ошибка из-за недостаточных прав, устанавливаем значения по умолчанию
+                        return new NetworkPrinter
+                        {
+                            //Name = printQueue.Name,
+                            ShareName = printQueue.ShareName,
+                            Comment = printQueue.Comment,
+                            IsOnline = false,
+
+                        };
+                    }
+                   
+                    
+                }
+                else
+                {
+                    if (printQueue.Name == "PR_COLOR"|| printQueue.ShareName == "PR_COLOR") {
+                        Console.WriteLine("PR_COLOR IS FOUND!!!!!!!!");
+                        
+                    }
+                    try
+                    {
+                        return new NetworkPrinter
+                        {
+                            Name = printQueue.Name,
+                            ShareName = printQueue.ShareName,
+                            Comment = printQueue.Comment,
+                            NonIPAddress = printQueue.QueuePort.Name,
+                            PrinterModel = new PrinterModel
+                            {
+                                ModelName = printQueue.QueueDriver.Name,
+                            },
+
+
+                        };
+                    }
+                    catch (PrintQueueException ex)
+                    {
+                        // Если возникает ошибка из-за недостаточных прав, устанавливаем значения по умолчанию
+                        return new NetworkPrinter
+                        {
+                            //Name = printQueue.Name,
+                            ShareName = printQueue.ShareName,
+                            Comment = printQueue.Comment,
+                            IsOnline = false,
 
                         };
                     }
                 }
 
-                return null;
             }
             catch (Exception e)
             {
