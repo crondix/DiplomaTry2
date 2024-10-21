@@ -29,6 +29,7 @@ namespace DiplomaTry2.Services
 
         public async Task AddEventsToDBAsync(List<EventSuccessfulPrinting> events)
         {
+            
             await using (var context = _contextFactory.CreateDbContext())
             {
                 try

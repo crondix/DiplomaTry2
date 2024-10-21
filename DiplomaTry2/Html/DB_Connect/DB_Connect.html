@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  
+  <section class="layers">
+    <div class="layers__container">
+        <div class="layers__item layer-1 " style="background-image: url(img/layer-1.png);"></div>
+       
+        
+        <div class="layers__item layer-2">
+          <div class="layer-2__container">
+            <div class="logo" style="background-image: url(img/DB_connect.png);"></div>
+               <div class="hero-content">
+                <h1>Соединение с сервером базы данных</h1>
+               <div class="hero-content__p"></div>
+               <div class="hero-content__input-container">
+                <span>Имя сервера</span><input value="PC-UOIT141\\SQLEXPRESS" class="hero-content  hero-content__input"/>
+                <span>Имя базы данных</span><input value="My_DB" class="hero-content  hero-content__input"/>
+                <span>Проверка подленности</span><select class="hero-content  hero-content__input">
+                  <option value="">Проверка подленности SQL Server</option>
+
+                </select>
+                <span>Имя пользователя</span><input value="user" class="hero-content  hero-content__input"/>
+                <span>Пароль</span><input type="password" value="sdhfjdhvf" class="hero-content  hero-content__input"/>
+          
+              </div>
+              
+               <button class="button-start">Соединение</button>
+          
+        </div>
+          </div>
+         
+   
+    </div>
+    
+  </section>
+  <div style="height: 100dvh;"></div>
+</body>
+</html>
