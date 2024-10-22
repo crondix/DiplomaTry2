@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 using DiplomaModels;
-using static DevExpress.XtraPrinting.Native.ExportOptionsPropertiesNames;
+
 
 namespace DiplomaTry2.Data
 {

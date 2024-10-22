@@ -5,7 +5,7 @@ using DiplomaTry2.Components;
 using DiplomaTry2.Components.Account;
 using DiplomaTry2.Data;
 
-using DevExpress.Blazor;
+
 
 
 using Microsoft.AspNetCore.Components.Authorization;
@@ -39,7 +39,7 @@ namespace DiplomaTry2
      
             builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
            
-            builder.Services.AddDevExpressBlazor(configure => configure.BootstrapVersion = BootstrapVersion.v5);
+          
 
             builder.Services.AddAuthentication(options =>
             {
@@ -75,7 +75,7 @@ namespace DiplomaTry2
 
             
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress =  new Uri("https://localhost:7197/") });
-            builder.Services.AddDevExpressBlazor(configure => configure.BootstrapVersion = BootstrapVersion.v5);
+     
             builder.Services.AddScoped<PrintServerService>();
             builder.Services.AddScoped<EventLogService>();
             builder.Services.AddScoped<EventLogProcessingService>();

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using DiplomaTry2.InterFaces;
 using DiplomaModels;
-using DevExpress.DocumentServices.ServiceModel.DataContracts;
+
 using DiplomaTry2.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
