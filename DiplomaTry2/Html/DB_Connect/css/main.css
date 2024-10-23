@@ -25,6 +25,8 @@ body {
   /*top: calc(var(--logo-size) / 1.6); */
   z-index: 4;
   background-size: contain;
+  background-position: center;
+  margin: 0 6dvw;
 }
 
 .layers {
@@ -34,7 +36,20 @@ body {
 .layers__container {
   height: 100dvh;
   min-height: 500px;
+  display: grid;
+grid-template-columns: 1fr;
+grid-template-rows:80% 20% ;
+  
+}
+.body-container {
+position: relative;
   display: flex;
+  flex-direction: column;
+}
+.footer-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 .layers__item {
   position: absolute;
@@ -46,13 +61,13 @@ body {
   justify-content: center;
 }
 .layer-1 {
-  background-repeat: repeat;
-  background-size: calc(var(--index) * 30);
+  background-repeat: no-repeat;
+  background-size:100% 100%;
 
   filter: brightness(1.6);
 }
 .layer-2 {
-  transform: translateZ(180px) scale(0.8);
+  transform: scale(0.8);
   z-index: 5;
 }
 .layer-3 {
@@ -61,7 +76,7 @@ body {
 .layer-2__container {
   position: relative;
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   justify-items: center;
   align-items: center;
   
@@ -96,6 +111,7 @@ body {
   text-align: justify;
   align-items: center;
 }
+
 .hero-content__input {
   text-transform: none;
   font-family: merriweather-italic-3d;
