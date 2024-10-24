@@ -12,17 +12,13 @@ body {
   background-color: black;
   color: #fff;
   font-family: kamerik-3d;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .logo {
   --logo-size: calc(var(--index) * 8);
   width: var(--logo-size);
   height: var(--logo-size);
   background-repeat: no-repeat;
-  /* position: absolute;
-  left:  calc(50% - calc(var(--logo-size) / 2));
-  /* top: calc(var(--index) * 1); */
-  /*top: calc(var(--logo-size) / 1.6); */
   z-index: 4;
   background-size: contain;
   background-position: center;
@@ -31,7 +27,7 @@ body {
 
 .layers {
   perspective: 1000px;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .layers__container {
   height: 100dvh;
@@ -102,6 +98,7 @@ height: 100%;
 flex-wrap: wrap;
 position: relative;
 padding: calc(var(--index)* 0.9);
+justify-content: space-between;
 }
 .menu__item{
   border: #ffffff50 3px solid;
@@ -109,7 +106,9 @@ padding: calc(var(--index)* 0.9);
   background: #ffffff25;
   margin: calc(var(--index) * 0.4);
   padding: calc(var(--index) * 0.4);
- 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .item__button{
   --logo-size: calc(var(--index) * 8);
