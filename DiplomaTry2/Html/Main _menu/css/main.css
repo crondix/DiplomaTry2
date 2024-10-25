@@ -82,7 +82,7 @@ body {
   letter-spacing: calc(var(--index) * -0.05);
   line-height: 1.35em;
   margin-top: calc(var(--index) * 0.5);
-  border: #ffffff50 3px solid;
+  border: #ffffff50 3px solid; 
   border-radius: 15px;
   background: #0000004d;
   /* backdrop-filter:  brightness(0.2); */
