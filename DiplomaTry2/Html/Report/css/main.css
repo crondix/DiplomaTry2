@@ -18,4 +18,12 @@ body {
 
 .main-container{
   min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 13% 1fr 13%;
+  background-size: contain;
+  text-align: justify;
+}
+.mein-block{
+  background-repeat: no-repeat;
+  background-size: cover;
 }
