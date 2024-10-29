@@ -15,15 +15,121 @@ body {
   
   /* overflow: hidden; */
 }
+.hero-content{
+  margin-top: calc(var(--index) * 0.4);
+}
+.layers{
+  
+  min-height: 100dvh;
+}
+.layers__container{
+  
+  position: relative;
+}
+.layers__item{
+  position: absolute;
+  inset: 0;
+}
+.layer-2__container{
+  position: relative;
+    overflow: hidden;
+}
+.background-layer{
+  background-size: contain;
+  z-index: 1; /* На самом нижнем уровне */
+  pointer-events: none; /* Не интерактивен */
+}
+.main-content-layer{
+  position: relative;
+  z-index: 2; /* Под меню, но над фоном */
+  pointer-events: none; /* Отключаем интерактивность для всего слоя */
+}
+.main-content-layer .hero-content__menu {
+  pointer-events: all; /* Включаем интерактивность только для текста, чтобы его можно было копировать */
+}
+.menu-layer .main-space{
+  pointer-events: none;
+}
+.menu-layer{
+ position: sticky;
+ z-index: 3; /* На самом верхнем уровне */
+ pointer-events: none; /* Позволяет взаимодействовать */
 
+}
+.menu-layer .left-sidebar, .right-sidebar{
+  pointer-events: all;
+}
 .main-container{
   min-height: 100dvh;
-  display: grid;
-  grid-template-columns: 13% 1fr 13%;
-  background-size: contain;
-  text-align: justify;
+    display: grid;
+    grid-template-columns: 12% 74% 12%;
+
+    
+    grid-gap: 1%;
 }
-.mein-block{
+@media (orientation: portrait) {
+  .main-container{
+    min-height: 100dvh;
+      display: grid;
+      grid-template-columns:1fr;
+      grid-template-rows:  1fr 1fr;
+      background-size: contain;
+    
+      grid-gap: 0%;
+  }
+}
+
+.main-block{
   background-repeat: no-repeat;
   background-size: cover;
+
+}
+
+.main-space {
+  text-align: justify;
+ 
+}
+.left-sidebar{
+  grid-column: 1;
+}
+.right-sidebar{
+  grid-column: 3;
+}
+.menu__item {
+  border: #ffffff50 3px solid;
+  border-radius: 15px;
+  background: #ffffff25;
+  margin: calc(var(--index) * 0.4);
+  padding: calc(var(--index) * 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  &:hover{
+    background-color: #ffffff62;
+    cursor: pointer;
+  }
+}
+
+.item__button {
+  --logo-size: 7dvw;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  background-repeat: no-repeat;
+
+  z-index: 4;
+  background-size: contain;
+  background-position: center;
+  margin-bottom: calc(var(--index) * 0.4);
+
+  /* inset: 0; */
+  background-position: center;
+  background-size: contain;
+
+  background-repeat: no-repeat;
+}
+.button__lable {
+  text-transform: uppercase;
+  text-align: center;
+  font-size: calc(var(--index) * 0.6);
+  color: #fff;
 }
