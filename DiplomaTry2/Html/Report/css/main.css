@@ -133,3 +133,10 @@ body {
   font-size: calc(var(--index) * 0.6);
   color: #fff;
 }
+.table-container{
+  display: flex;
+  gap: 1%;
+}
+.location{
+  filter:blur(3px);
+}
