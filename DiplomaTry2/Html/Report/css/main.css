@@ -108,6 +108,9 @@ body {
     background-color: #ffffff62;
     cursor: pointer;
   }
+  .button__lable{
+    pointer-events: none;
+  }
 }
 
 .item__button {
