@@ -115,9 +115,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  font-size: calc(var(--index) * 0.8);
 }
 .item__button {
-  --logo-size: calc(var(--index) * 8);
+  --logo-size: calc(var(--index) * 4);
   width: var(--logo-size);
   height: var(--logo-size);
   background-repeat: no-repeat;
@@ -229,7 +230,7 @@ body {
   width: 20px;
 }
 .product-characteristics__spec-title:after {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px dashed #ffffff;
   content: " ";
   flex-grow: 1;
   min-width: 100%;
@@ -238,7 +239,7 @@ body {
   top: 1em;
 }
 .product-characteristics__spec-title-content {
-  background: #00000094;
+  background: #000000be;
   box-shadow: 4px 0 0 0 #00000094;
   padding: 6px 0;
   position: relative;
