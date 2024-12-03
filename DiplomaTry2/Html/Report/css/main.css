@@ -6,6 +6,9 @@
 :root {
   --index: calc(1dvh + 1dvw);
   --transition: 1s cubic-bezier(0.05, 0.5, 0 1);
+  --max-load-color: red;
+  --midle-load-color: orange;
+  --min-load-color: green;
 }
 
 body {
@@ -139,7 +142,54 @@ body {
 .table-container{
   display: flex;
   gap: 1%;
+
+}
+.table{
+  font-size: calc(var(--index)* 0.7);
 }
 .location{
   filter:blur(3px);
+}
+.nav-tabs{
+  font-size: calc(var(--index)* 0.9);
+  --bs-nav-link-color:#fff !important;
+  --bs-nav-link-hover-color: #fff !important;
+  --bs-nav-tabs-link-active-color: #fff !important;
+  color: #fff;
+ 
+}
+
+#max-load-tab{
+border-color: red;
+background-color: color-mix(in srgb, var(--max-load-color) 20%, transparent);
+}
+#max-load-tab.active{
+  background-color: var(--max-load-color);
+  
+}
+#midle-load-tab{
+  border-color: orange;
+  background-color: color-mix(in srgb, var(--midle-load-color) 20%, transparent);
+}
+#midle-load-tab.active{
+  background-color: var(--midle-load-color);
+}
+#min-load-tab{
+  border-color: green;
+  background-color:  color-mix(in srgb, var(--min-load-color) 20%, transparent);
+}
+#min-load-tab.active{
+  background-color: var(--min-load-color);
+}
+#max-load-tab-pane{
+  box-shadow: 0 0 20px 0px 
+  color-mix(in srgb, var(--max-load-color) 30%, transparent);
+}
+#midle-load-tab-pane{
+  box-shadow: 0 0 20px 0px 
+  color-mix(in srgb, var(--midle-load-color) 30%, transparent);
+}
+#min-load-tab-pane{
+  box-shadow: 0 0 20px 0px 
+  color-mix(in srgb, var(--min-load-color) 30%, transparent);
 }
