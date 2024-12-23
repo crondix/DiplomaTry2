@@ -148,7 +148,7 @@ body {
   font-size: calc(var(--index)* 0.7);
 }
 .location{
-  filter:blur(3px);
+  filter:blur(2px);
 }
 .nav-tabs{
   font-size: calc(var(--index)* 0.9);
@@ -192,4 +192,11 @@ background-color: color-mix(in srgb, var(--max-load-color) 20%, transparent);
 #min-load-tab-pane{
   box-shadow: 0 0 20px 0px 
   color-mix(in srgb, var(--min-load-color) 30%, transparent);
+}
+#calendar{
+  border: #ffffff50 3px solid;
+  border-radius: 15px;
+  background: #ffffff25;
+ 
+
 }
