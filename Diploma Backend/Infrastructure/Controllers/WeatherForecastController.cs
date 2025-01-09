@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Diploma_Backend.Controllers
+namespace Diploma_Backend.Infrastructure.Controllers
 {
     [ApiController]
     [Route("[controller]")]
