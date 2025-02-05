@@ -18,6 +18,7 @@ body {
   
   /* overflow: hidden; */
 }
+
 .hero-content{
   margin-top: calc(var(--index) * 0.4);
 }
@@ -145,10 +146,11 @@ body {
 
 }
 .table{
-  font-size: calc(var(--index)* 0.7);
+  font-size: calc(var(--index)* 0.5);
+  font-family: 'Times New Roman', Times, serif;
 }
 .location{
-  filter:blur(2px);
+  filter:blur(0px);
 }
 .nav-tabs{
   font-size: calc(var(--index)* 0.9);

@@ -14,6 +14,9 @@ body {
   font-family: kamerik-3d;
   /* overflow: hidden; */
 }
+select{
+  text-transform: uppercase !important;
+}
 .logo {
   --logo-size: calc(var(--index) * 8);
   width: var(--logo-size);

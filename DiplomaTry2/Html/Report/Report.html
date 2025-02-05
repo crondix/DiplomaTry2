@@ -743,7 +743,7 @@
                   </div>
                 </div>
                 <div class="hero-content__menu">
-                  <div class="menu__item" data-bs-toggle="modal" data-bs-target="#SeriesModal">
+                  <div class="menu__item" data-bs-toggle="modal" data-bs-target="#ErrorModal">
                     <div class="item__button" style="background-image: url(img/Excel.png);"></div>
                     <div class="button__lable">Проверка в MS Office Excel</div>
                   </div>
@@ -766,7 +766,7 @@
 
 
 
-  <!-- Modal -->
+ <!--#region Approve Modal -->
   <div class="modal fade " id="SeriesModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
       <div class="modal-content">
@@ -817,7 +817,27 @@
       </div>
     </div>
   </div>
+    <!--#endregion -->
 
+  <!--#region Error Modal -->
+  <div class="modal fade " id="ErrorModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered  ">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title text-danger h1" id="exampleModalLabel">Ошибка!</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="font-family: MJXZERO, MJXTEX">
+          <div class="h5">Выбран некорректный временной промежуток для анализа</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--#endregion -->
 
 
 
