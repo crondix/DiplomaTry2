@@ -9,6 +9,9 @@
   <ItemGroup>
     <Folder Include="Repositories\" />
     <Folder Include="domainServices\" />
+    <Folder Include="Enums\" />
+    <Folder Include="Exceptions\" />
+    <Folder Include="DomainEvents\" />
   </ItemGroup>
 
 </Project>

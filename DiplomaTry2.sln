@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diploma.Domain", "Diploma.D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diploma.Application", "Diploma.Application\Diploma.Application.csproj", "{37565DBD-F332-4670-BC02-E61445A4A627}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diploma.Infrastructure", "Infrastructure\Diploma.Infrastructure.csproj", "{D27B88D3-08F7-4877-B817-5EC320EEFF1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{37565DBD-F332-4670-BC02-E61445A4A627}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37565DBD-F332-4670-BC02-E61445A4A627}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37565DBD-F332-4670-BC02-E61445A4A627}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D27B88D3-08F7-4877-B817-5EC320EEFF1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D27B88D3-08F7-4877-B817-5EC320EEFF1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D27B88D3-08F7-4877-B817-5EC320EEFF1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D27B88D3-08F7-4877-B817-5EC320EEFF1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
