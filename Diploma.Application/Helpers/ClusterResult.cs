@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+using Diploma.Application.Interfaces;
 using Diploma.Domain.Entities;
 
-namespace Diploma.Application.Interfaces
+
+namespace Diploma.Application.Helpers
 {
-    interface IClusterResult
+    class ClusterResult<T> : IClusterResult
     {
-        public IClusterItem Item { get; set; }
+        public ClusterItem<T> Item { get; set; }
         public int ClusterNumber { get; set; }
     }
 }
