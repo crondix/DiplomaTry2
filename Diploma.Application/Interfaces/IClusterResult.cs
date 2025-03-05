@@ -11,7 +11,8 @@ namespace Diploma.Application.Interfaces
 {
     interface IClusterResult
     {
-        public IClusterItem Item { get; set; }
-        public int ClusterNumber { get; set; }
+        public Guid Id { get; }
+        public IClusterItem Item { get; }
+        public int ClusterNumber { get;  }
     }
 }
