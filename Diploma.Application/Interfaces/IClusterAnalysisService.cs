@@ -8,11 +8,10 @@ using Diploma.Application.UseCase;
 
 namespace Diploma.Application.Interfaces
 {
-    interface IClusterAnalysisService
+    public interface IClusterAnalysisService
     {
-        public IMatrixNormalizer Normalizer { get; }
-        public IObjectToMatrixConverter objectToMatrix { get; }
-        public IClusterResult Analysis();
+   
+        public IClusterResultRepository Analysis();
 
     }
 }

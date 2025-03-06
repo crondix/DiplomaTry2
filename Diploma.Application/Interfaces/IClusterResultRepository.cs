@@ -10,12 +10,12 @@ using Diploma.Domain.Entities;
 
 namespace Diploma.Application.Interfaces
 {
-    interface IClusterResultRepository
+    public interface IClusterResultRepository
     {
-        public Task<IClusterResult> GetByIdAsync(Guid id);
-        public Task<IEnumerable<IClusterResult>> GetAllAsync();
-        public Task AddAsync(IClusterResult item);
-        public Task UpdateAsync(IClusterResult item);
+        public Task<IClusterResultItem> GetByIdAsync(Guid id);
+        public Task<IEnumerable<IClusterResultItem>> GetAllAsync();
+        public Task AddAsync(IClusterResultItem item);
+        public Task UpdateAsync(IClusterResultItem item);
         public Task DeleteAsync(Guid id);
     }
 }

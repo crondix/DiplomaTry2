@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Diploma.Application.Interfaces
 {
-    interface IMatrixNormalizer
+    public interface IMatrixNormalizer
     {
        public double[,] Normalize(double[,] matrix);
     }
