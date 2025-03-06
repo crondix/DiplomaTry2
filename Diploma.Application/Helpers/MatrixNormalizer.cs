@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,9 +8,9 @@ using Diploma.Application.Interfaces;
 
 namespace Diploma.Application.Helpers
 {
-    class ObjectsToMatrix : IObjectToMatrixConverter
+    class MatrixNormalizer : IMatrixNormalizer
     {
-        double[,] IObjectToMatrixConverter.ObjectsToMatrix<T>(T[] objects, Expression<Func<T, double>>[] propertySelectors)
+        double[,] IMatrixNormalizer.Normalize(double[,] matrix)
         {
             throw new NotImplementedException();
         }

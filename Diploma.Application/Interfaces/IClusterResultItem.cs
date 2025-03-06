@@ -9,7 +9,7 @@ using Diploma.Domain.Entities;
 
 namespace Diploma.Application.Interfaces
 {
-    interface IClusterResult
+    interface IClusterResultItem
     {
         public Guid Id { get; }
         public IClusterItem Item { get; }
