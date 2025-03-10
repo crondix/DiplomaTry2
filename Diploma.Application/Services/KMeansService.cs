@@ -6,19 +6,24 @@ using System.Threading.Tasks;
 
 using Diploma.Application.Interfaces;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace Diploma.Application.Services
 {
-    public class KMeansService : IClusterAnalysisService
+    public class KMeansService : IMethodClusterAnalysisService, IKMeansService
     {
-        public IMatrixNormalizer _Normalizer { get; set; }
+        private IMatrixNormalizer _Normalizer { get; set; }
 
-        public IObjectToMatrixConverter _ObjectToMatrix { get; set; }
+        private IObjectToMatrixConverter _ObjectToMatrix { get; set; }
+
+        public delegate double[,] CentroidInitializationFunc(double[,] data, int k);
 
         public KMeansService(IMatrixNormalizer Normalizer, IObjectToMatrixConverter ObjectToMatrix)
         {
             _Normalizer = Normalizer;
             _ObjectToMatrix= ObjectToMatrix;
         }
+
         /// <summary>
         /// Выполняет кластеризацию методом k-средних для нормализованной матрицы данных.
         /// </summary>
@@ -26,47 +31,17 @@ namespace Diploma.Application.Services
         /// <param name="k">Желаемое число кластеров.</param>
         /// <param name="maxIterations">Максимальное число итераций.</param>
         /// <param name="threshold">Порог для остановки (изменение центроидов).</param>
-        /// <returns>Объект IClusterResultItem с назначениями кластеров.</returns>
-        public IClusterResultRepository Analysis(double[,] data, int k, int maxIterations = 100, double threshold = 1e-6)
+        /// <returns>Объект IClusterResultRepository с назначениями кластеров.</returns>
+        public IClusterResultRepository Analysis(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
         {
+            
+
+            // Количество объектов (строк) в переданном массиве данных
             int numObjects = data.GetLength(0);
+            // Количество признаков (столбцов) у каждого объекта
             int numFeatures = data.GetLength(1);
             int[] assignments = new int[numObjects];
-
-            // Инициализация центроидов: выбираем k различных случайных объектов из данных.
-            double[,] centroids = new double[k, numFeatures];
-            Random rand = new Random();
-            //if (k == 3)
-            //{
-            // Первый центроид: все признаки = 1
-            for (int j = 0; j < numFeatures; j++)
-                centroids[0, j] = 0;
-            // Второй центроид: все признаки = 0.5
-            for (int j = 0; j < numFeatures; j++)
-                centroids[1, j] = 0.5;
-            // Третий центроид: все признаки = 0
-            for (int j = 0; j < numFeatures; j++)
-                centroids[2, j] = 1;
-            //}
-            //else
-            //{
-            // Инициализация для k, отличного от 3 (например, случайным образом)
-            //var chosenIndices = new HashSet<int>();
-            //for (int i = 0; i < k; i++)
-            //{
-            //    int index;
-            //    do
-            //    {
-            //        index = rand.Next(numObjects);
-            //    } while (chosenIndices.Contains(index));
-            //    chosenIndices.Add(index);
-            //    for (int j = 0; j < numFeatures; j++)
-            //    {
-            //        centroids[i, j] = data[index, j];
-            //    }
-            //}
-            //}
-
+            var centroids = СentroidsInitializer(data, k);
             bool changed = true;
             int iterations = 0;
             while (changed && iterations < maxIterations)
@@ -150,10 +125,54 @@ namespace Diploma.Application.Services
                     break;
             }
 
-            return new  { Assignments = assignments, Centroids = centroids };
+            //return new { Assignments = assignments };
         }
 
-
+        /// <summary>
+        /// Метод инициализирует центроиды для алгоритма кластеризации К-средних, позволяя задать центройды в ручную, или выбирая k различных случайных объектов из данных.
+        /// </summary>
+        /// <param name="data">Нормализованная матрица данных (каждая строка – объект, столбцы – признаки).</param>
+        /// <param name="k">Желаемое число кластеров.</param>
+        /// <returns>Двумерный массив (double[,]) центройдов.</returns>
+      static double[,] CentroidInitializer(double[,] data, int k) {
+            // Количество объектов (строк) в переданном массиве данных
+            int numObjects = data.GetLength(0);
+            // Количество признаков (столбцов) у каждого объекта
+            int numFeatures = data.GetLength(1);
+            double[,] centroids = new double[k, numFeatures];
+            Random rand = new Random();
+            if (k == 3)
+            {
+                //Первый центроид: все признаки = 1
+                for (int j = 0; j < numFeatures; j++)
+                    centroids[0, j] = 0;
+                //Второй центроид: все признаки = 0.5
+                for (int j = 0; j < numFeatures; j++)
+                    centroids[1, j] = 0.5;
+                //Третий центроид: все признаки = 0
+                for (int j = 0; j < numFeatures; j++)
+                    centroids[2, j] = 1;
+            }
+            else
+            {
+                //Инициализация для k, отличного от 3(например, случайным образом)
+                var chosenIndices = new HashSet<int>();
+                for (int i = 0; i < k; i++)
+                {
+                    int index;
+                    do
+                    {
+                        index = rand.Next(numObjects);
+                    } while (chosenIndices.Contains(index));
+                    chosenIndices.Add(index);
+                    for (int j = 0; j < numFeatures; j++)
+                    {
+                        centroids[i, j] = data[index, j];
+                    }
+                }
+            }
+            return centroids;
+        }
 
     }
 }

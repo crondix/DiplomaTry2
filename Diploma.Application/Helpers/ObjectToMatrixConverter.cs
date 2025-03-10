@@ -10,11 +10,17 @@ using Diploma.Application.Interfaces;
 namespace Diploma.Application.Helpers
 {
     class ToMatrixConverter : IObjectToMatrixConverter
-    { 
+    {
         /// <summary>
-      /// Преобразует массив объектов в матрицу числовых характеристик.
-      /// propertySelectors – массив выражений для выбора числовых свойств.
-      /// </summary>
+        /// Преобразует массив объектов в двумерный массив чисел (матрицу),  
+        /// используя указанные свойства объектов.
+        /// </summary>
+        /// <typeparam name="T">Тип объектов в массиве.</typeparam>
+        /// <param name="objects">Массив объектов, которые будут преобразованы в матрицу.</param>
+        /// <param name="propertySelectors">Массив выражений, определяющих свойства объектов,  
+        /// которые будут извлекаться в виде чисел.</param>
+        /// <returns>Двумерный массив (матрица), где строки соответствуют объектам,  
+        /// а столбцы — выбранным свойствам.</returns>
         public double[,] ObjectsToMatrix<T>(T[] objects, Expression<Func<T, double>>[] propertySelectors)
         {
             var propertyFuncs = propertySelectors.Select(selector => selector.Compile()).ToArray();
@@ -30,5 +36,6 @@ namespace Diploma.Application.Helpers
             }
             return matrix;
         }
+      
     }
 }

@@ -8,7 +8,7 @@ using Diploma.Application.UseCase;
 
 namespace Diploma.Application.Interfaces
 {
-    public interface IClusterAnalysisService
+    public interface IMethodClusterAnalysisService
     {
    
         public IClusterResultRepository Analysis();
