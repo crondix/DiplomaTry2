@@ -14,14 +14,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 		CodeMap1.dgml = CodeMap1.dgml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diploma.Domain", "Diploma.Domain\Diploma.Domain.csproj", "{8805324F-7F8F-4CC6-8CB3-AB561DCB0E62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A Diploma.Domain", "Diploma.Domain\A Diploma.Domain.csproj", "{8805324F-7F8F-4CC6-8CB3-AB561DCB0E62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diploma.Application", "Diploma.Application\Diploma.Application.csproj", "{37565DBD-F332-4670-BC02-E61445A4A627}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "B Diploma.Application", "Diploma.Application\B Diploma.Application.csproj", "{37565DBD-F332-4670-BC02-E61445A4A627}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8805324F-7F8F-4CC6-8CB3-AB561DCB0E62} = {8805324F-7F8F-4CC6-8CB3-AB561DCB0E62}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diploma.Infrastructure", "Infrastructure\Diploma.Infrastructure.csproj", "{D27B88D3-08F7-4877-B817-5EC320EEFF1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C Diploma.Infrastructure", "Infrastructure\C Diploma.Infrastructure.csproj", "{D27B88D3-08F7-4877-B817-5EC320EEFF1C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8805324F-7F8F-4CC6-8CB3-AB561DCB0E62} = {8805324F-7F8F-4CC6-8CB3-AB561DCB0E62}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

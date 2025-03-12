@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Diploma.Application.Helpers;
 using Diploma.Domain.Entities;
 
-namespace Diploma.Application.Interfaces
+namespace Diploma.Application.Interfaces.Repository
 {
     public interface IClusterResultRepository
     {

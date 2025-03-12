@@ -9,12 +9,14 @@
   <ItemGroup>
     <Folder Include="DTOs\" />
     <Folder Include="Commands\" />
+    <Folder Include="Interfaces\Service\" />
     <Folder Include="Queries\" />
+    <Folder Include="Services\" />
     <Folder Include="Validators\" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Diploma.Domain\Diploma.Domain.csproj" />
+    <ProjectReference Include="..\Diploma.Domain\A Diploma.Domain.csproj" />
   </ItemGroup>
 
 </Project>

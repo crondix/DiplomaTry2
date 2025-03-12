@@ -4,24 +4,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Diploma.Application.Interfaces;
+using Diploma.Application.Interfaces.ClasterMethods;
+using Diploma.Domain.Interfaces;
 
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Diploma.Application.Services
 {
-    public class KMeansService : IMethodClusterAnalysisService, IKMeansService
+    public class KMeans : IClusterAnalyzer, IKMeans
     {
-        private IMatrixNormalizer _Normalizer { get; set; }
-
-        private IObjectToMatrixConverter _ObjectToMatrix { get; set; }
 
         public delegate double[,] CentroidInitializationFunc(double[,] data, int k);
 
-        public KMeansService(IMatrixNormalizer Normalizer, IObjectToMatrixConverter ObjectToMatrix)
+        public KMeans()
         {
-            _Normalizer = Normalizer;
-            _ObjectToMatrix= ObjectToMatrix;
+        
+         
         }
 
         /// <summary>
@@ -32,7 +30,7 @@ namespace Diploma.Application.Services
         /// <param name="maxIterations">Максимальное число итераций.</param>
         /// <param name="threshold">Порог для остановки (изменение центроидов).</param>
         /// <returns>Объект IClusterResultRepository с назначениями кластеров.</returns>
-        public IClusterResultRepository Analysis(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
+        public double[,] Analysis(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
         {
             
 

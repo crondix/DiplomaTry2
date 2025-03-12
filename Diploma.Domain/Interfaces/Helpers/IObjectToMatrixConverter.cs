@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Diploma.Application.Interfaces
+namespace Diploma.Infrastructure.Interfaces.Helpers
 {
     public interface IObjectToMatrixConverter
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Diploma.Application.Interfaces;
+using Diploma.Infrastructure.Interfaces.Helpers;
 
 namespace Diploma.Application.Helpers
 {
