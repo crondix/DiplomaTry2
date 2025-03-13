@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Diploma.Infrastructure.Interfaces.Helpers
 {
-    public interface IObjectToMatrixConverter
+    public interface IToMatrixConverter
     {
-        public double[,] ObjectsToMatrix<T>(T[] objects, Expression<Func<T, double>>[] propertySelectors);
+
+        public double[,] Convert();
     }
 }

@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Diploma.Infrastructure.Interfaces.Helpers
+
+
+
+namespace Diploma.Application.Interfaces.ClasterMethods
 {
-    public interface IMatrixNormalizer
+    public interface IKMeans
     {
-       public double[,] Normalize();
+    
     }
 }

@@ -9,7 +9,7 @@
   <ItemGroup>
     <Folder Include="DTOs\" />
     <Folder Include="Commands\" />
-    <Folder Include="Interfaces\Service\" />
+    <Folder Include="Interfaces\" />
     <Folder Include="Queries\" />
     <Folder Include="Services\" />
     <Folder Include="Validators\" />

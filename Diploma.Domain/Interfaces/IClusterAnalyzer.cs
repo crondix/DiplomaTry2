@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Diploma.Domain.Entities;
+
 namespace Diploma.Domain.Interfaces
 {
     public interface IClusterAnalyzer
     {
-        int[] Analyze(double[,] data);
+        public IEnumerable<ClusterItem> Analyze();
     }
 }

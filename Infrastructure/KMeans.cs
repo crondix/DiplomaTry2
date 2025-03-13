@@ -14,35 +14,44 @@ namespace Diploma.Application.Services
     public class KMeans : IClusterAnalyzer, IKMeans
     {
 
-        public delegate double[,] CentroidInitializationFunc(double[,] data, int k);
+        double[,] _data;
+        int _k;
+        CentroidInitializationFunc _СentroidsInitializer;
+        int _maxIterations;
+        double _threshold;
 
-        public KMeans()
+        public delegate double[,] CentroidInitializationFunc(double[,] _data, int _k);
+
+        public KMeans(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
         {
-        
-         
+            _data = data;
+            _k = k;
+            _СentroidsInitializer = СentroidsInitializer;
+            _maxIterations = maxIterations;
+            _threshold = threshold;
         }
 
         /// <summary>
-        /// Выполняет кластеризацию методом k-средних для нормализованной матрицы данных.
+        /// Выполняет кластеризацию методом _k-средних для нормализованной матрицы данных.
         /// </summary>
-        /// <param name="data">Нормализованная матрица данных (каждая строка – объект, столбцы – признаки).</param>
-        /// <param name="k">Желаемое число кластеров.</param>
-        /// <param name="maxIterations">Максимальное число итераций.</param>
-        /// <param name="threshold">Порог для остановки (изменение центроидов).</param>
+        /// <param name="_data">Нормализованная матрица данных (каждая строка – объект, столбцы – признаки).</param>
+        /// <param name="_k">Желаемое число кластеров.</param>
+        /// <param name="_maxIterations">Максимальное число итераций.</param>
+        /// <param name="_threshold">Порог для остановки (изменение центроидов).</param>
         /// <returns>Объект IClusterResultRepository с назначениями кластеров.</returns>
-        public double[,] Analysis(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
+        public double[,] Analysis()
         {
-            
+
 
             // Количество объектов (строк) в переданном массиве данных
-            int numObjects = data.GetLength(0);
+            int numObjects = _data.GetLength(0);
             // Количество признаков (столбцов) у каждого объекта
-            int numFeatures = data.GetLength(1);
+            int numFeatures = _data.GetLength(1);
             int[] assignments = new int[numObjects];
-            var centroids = СentroidsInitializer(data, k);
+            var centroids = _СentroidsInitializer(_data, _k);
             bool changed = true;
             int iterations = 0;
-            while (changed && iterations < maxIterations)
+            while (changed && iterations < _maxIterations)
             {
                 changed = false;
                 // Шаг 1: Назначение каждого объекта к ближайшему центроиду.
@@ -50,12 +59,12 @@ namespace Diploma.Application.Services
                 {
                     double minDist = double.MaxValue;
                     int bestCluster = 0;
-                    for (int cluster = 0; cluster < k; cluster++)
+                    for (int cluster = 0; cluster < _k; cluster++)
                     {
                         double dist = 0;
                         for (int j = 0; j < numFeatures; j++)
                         {
-                            double diff = data[i, j] - centroids[cluster, j];
+                            double diff = _data[i, j] - centroids[cluster, j];
                             dist += diff * diff;
                         }
                         // Используем квадрат расстояния (без извлечения квадратного корня)
@@ -73,18 +82,18 @@ namespace Diploma.Application.Services
                 }
 
                 // Шаг 2: Пересчёт центроидов.
-                double[,] newCentroids = new double[k, numFeatures];
-                int[] counts = new int[k];
+                double[,] newCentroids = new double[_k, numFeatures];
+                int[] counts = new int[_k];
                 for (int i = 0; i < numObjects; i++)
                 {
                     int cluster = assignments[i];
                     counts[cluster]++;
                     for (int j = 0; j < numFeatures; j++)
                     {
-                        newCentroids[cluster, j] += data[i, j];
+                        newCentroids[cluster, j] += _data[i, j];
                     }
                 }
-                for (int cluster = 0; cluster < k; cluster++)
+                for (int cluster = 0; cluster < _k; cluster++)
                 {
                     if (counts[cluster] > 0)
                     {
@@ -105,7 +114,7 @@ namespace Diploma.Application.Services
 
                 // Проверка критерия останова: вычисляем максимальное изменение центроидов.
                 double maxChange = 0;
-                for (int cluster = 0; cluster < k; cluster++)
+                for (int cluster = 0; cluster < _k; cluster++)
                 {
                     double change = 0;
                     for (int j = 0; j < numFeatures; j++)
@@ -119,27 +128,28 @@ namespace Diploma.Application.Services
                 }
                 centroids = newCentroids;
                 iterations++;
-                if (maxChange < threshold)
+                if (maxChange < _threshold)
                     break;
             }
 
-            //return new { Assignments = assignments };
+            return new { Assignments = assignments };
         }
 
         /// <summary>
-        /// Метод инициализирует центроиды для алгоритма кластеризации К-средних, позволяя задать центройды в ручную, или выбирая k различных случайных объектов из данных.
+        /// Метод инициализирует центроиды для алгоритма кластеризации К-средних, позволяя задать центройды в ручную, или выбирая _k различных случайных объектов из данных.
         /// </summary>
-        /// <param name="data">Нормализованная матрица данных (каждая строка – объект, столбцы – признаки).</param>
-        /// <param name="k">Желаемое число кластеров.</param>
+        /// <param name="_data">Нормализованная матрица данных (каждая строка – объект, столбцы – признаки).</param>
+        /// <param name="_k">Желаемое число кластеров.</param>
         /// <returns>Двумерный массив (double[,]) центройдов.</returns>
-      static double[,] CentroidInitializer(double[,] data, int k) {
+        static double[,] CentroidInitializer(double[,] _data, int _k)
+        {
             // Количество объектов (строк) в переданном массиве данных
-            int numObjects = data.GetLength(0);
+            int numObjects = _data.GetLength(0);
             // Количество признаков (столбцов) у каждого объекта
-            int numFeatures = data.GetLength(1);
-            double[,] centroids = new double[k, numFeatures];
+            int numFeatures = _data.GetLength(1);
+            double[,] centroids = new double[_k, numFeatures];
             Random rand = new Random();
-            if (k == 3)
+            if (_k == 3)
             {
                 //Первый центроид: все признаки = 1
                 for (int j = 0; j < numFeatures; j++)
@@ -153,9 +163,9 @@ namespace Diploma.Application.Services
             }
             else
             {
-                //Инициализация для k, отличного от 3(например, случайным образом)
+                //Инициализация для _k, отличного от 3(например, случайным образом)
                 var chosenIndices = new HashSet<int>();
-                for (int i = 0; i < k; i++)
+                for (int i = 0; i < _k; i++)
                 {
                     int index;
                     do
@@ -165,7 +175,7 @@ namespace Diploma.Application.Services
                     chosenIndices.Add(index);
                     for (int j = 0; j < numFeatures; j++)
                     {
-                        centroids[i, j] = data[index, j];
+                        centroids[i, j] = _data[index, j];
                     }
                 }
             }

@@ -4,20 +4,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Diploma.Application.Interfaces.Helpers;
+
+using Diploma.Infrastructure.Interfaces.Helpers;
 
 namespace Diploma.Application.Helpers
 {
     class MatrixNormalizer : IMatrixNormalizer
     {
+        private double[,] _matrix;
+        public MatrixNormalizer(double[,] matrix)  
+        {
+            _matrix = matrix;
+        }
         /// <summary>
         /// Нормализует матрицу по столбцам: для каждого столбца выполняется нормализация:
         /// (value - min) / (max - min)
         /// </summary>
-        public double[,] Normalize(double[,] matrix)
+        public double[,] Normalize()
         {
-            int rows = matrix.GetLength(0);
-            int columns = matrix.GetLength(1);
+            int rows = _matrix.GetLength(0);
+            int columns = _matrix.GetLength(1);
             double[,] normalized = new double[rows, columns];
 
             for (int j = 0; j < columns; j++)
@@ -26,12 +32,12 @@ namespace Diploma.Application.Helpers
                 double max = double.MinValue;
                 for (int i = 0; i < rows; i++)
                 {
-                    if (matrix[i, j] < min) min = matrix[i, j];
-                    if (matrix[i, j] > max) max = matrix[i, j];
+                    if (_matrix[i, j] < min) min = _matrix[i, j];
+                    if (_matrix[i, j] > max) max = _matrix[i, j];
                 }
                 for (int i = 0; i < rows; i++)
                 {
-                    normalized[i, j] = (matrix[i, j] - min) / (max - min);
+                    normalized[i, j] = (_matrix[i, j] - min) / (max - min);
                 }
             }
 

@@ -9,17 +9,22 @@ using Diploma.Application.Interfaces;
 
 namespace Diploma.Domain.Entities
 {
-    public class ClusterItem<T>:IClusterItem<T> where T : INumber<T>, IMinMaxValue<T>
+    public class ClusterItem
     {
+
+        private object _item;
+        private int _clusterNumber;
+
         public Guid Id { get; private set; }
-        public object Item { get; set; }
-        public T[] Properties { get; set; }
-        IEnumerable<object> IClusterItem.Properties => Properties.Cast<object>(); // Приведение типов
-        public ClusterItem(object item, T[] properties)
+        public object Item { get => _item; }
+        public int ClusterNumber { get => _clusterNumber; set => _clusterNumber = value; }
+
+        public ClusterItem(int clusterNumber, object item)
         {
+            _clusterNumber = clusterNumber;
+            _item = item;
             Id = Guid.NewGuid();
-            Item = item;
-            Properties = properties;
+
         }
     }
 }

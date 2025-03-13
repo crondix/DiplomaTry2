@@ -1,24 +1,36 @@
-﻿using Diploma.Domain.Interfaces;
+﻿using System.Threading.Tasks;
+
+using Diploma.Domain.Entities;
+using Diploma.Domain.Interfaces;
+using Diploma.Infrastructure.Interfaces.Helpers;
 
 namespace Diploma.Application.UseCase
 {
     public class ClusterAnalysisUseCase
     {
         private readonly IClusterAnalyzer _analyzer;
-        private readonly IObjectToMatrix converter;
-        private readonly IClusterAnalyzer _analyzer;
+        private readonly IClusterItemRepository _repository;
+        private readonly IToMatrixConverter _converter;
+        private readonly IMatrixNormalizer _normolaizer;
 
         // Зависимость внедряется через конструктор
-        public ClusterAnalysisUseCase(IClusterAnalyzer analyzer)
+        public ClusterAnalysisUseCase(IClusterAnalyzer analyzer, IToMatrixConverter converter, IMatrixNormalizer normolaizer, IClusterItemRepository repository)
         {
             _analyzer = analyzer;
+            _converter = converter;
+            _normolaizer = normolaizer;
+            _repository = repository;
         }
 
-        public void Execute()
+        public async Task<IEnumerable<ClusterItem>> Execute()
         {
-            //double[,] data = GetData(); // Например, из репозитория
-            //int[] clusters = _analyzer.Analyze(data);
-            //// Обработка результата...
+            IEnumerable<ClusterItem> data = await _repository.GetAllAsync();
+            var matrix = _converter.Convert();
+            var normalaizMatrix = _normolaizer.Normalize();
+            IEnumerable<ClusterItem> сlusterizationResult = _analyzer.Analyze();
+
+            return сlusterizationResult;
+
         }
 
     }
