@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using Diploma.Domain.Entities;
 using Diploma.Domain.Interfaces;
@@ -25,7 +26,12 @@ namespace Diploma.Application.UseCase
         public async Task<IEnumerable<ClusterItem>> Execute()
         {
             IEnumerable<ClusterItem> data = await _repository.GetAllAsync();
-            var matrix = _converter.Convert();
+            Expression<Func<ClusterItem, double>>[] propertySelectors = new[]
+        {
+            item => item., // Предполагаемые свойства
+
+        };
+            var matrix = _converter.Convert(data,);
             var normalaizMatrix = _normolaizer.Normalize();
             IEnumerable<ClusterItem> сlusterizationResult = _analyzer.Analyze();
 

@@ -9,17 +9,23 @@ using Diploma.Infrastructure.Interfaces.Helpers;
 
 namespace C_Diploma.Infrastructure.Converters
 {
-    class ToObjectToMatrixConverter<T> : IToMatrixConverter 
+    class ToObjectToMatrixConverter<T> : IToMatrixConverter<T>
     {
         private T[] _objects;
         private Expression<Func<T, double>>[] _propertySelectors;
-        
 
+ 
 
         public ToObjectToMatrixConverter(T[] objects, Expression<Func<T, double>>[] propertySelectors) 
         {
             _objects=objects;
             _propertySelectors = propertySelectors;
+          
+        }
+        public ToObjectToMatrixConverter()
+        {
+           
+            
         }
         /// <summary>
         /// Преобразует массив объектов в двумерный массив чисел (матрицу),  
@@ -31,7 +37,9 @@ namespace C_Diploma.Infrastructure.Converters
         /// которые будут извлекаться в виде чисел.</param>
         /// <returns>Двумерный массив (матрица), где строки соответствуют объектам,  
         /// а столбцы — выбранным свойствам.</returns>
-        public double[,] Convert()
+      
+
+        public double[,] Convert(ICollection<object> objects, Expression<Func<T, double>>[] propertySelectors)
         {
             var propertyFuncs = _propertySelectors.Select(selector => selector.Compile()).ToArray();
             double[,] matrix = new double[_objects.Length, propertyFuncs.Length];
@@ -46,8 +54,6 @@ namespace C_Diploma.Infrastructure.Converters
             }
             return matrix;
         }
-     
-       
-      
+
     }
 }
