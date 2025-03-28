@@ -9,6 +9,6 @@ namespace Diploma.Infrastructure.Interfaces.Helpers
 {
     public interface IMatrixNormalizer
     {
-       public double[,] Normalize(INumber[,] matrix);
+       public double[,] Normalize(double[,] matrix);
     }
 }

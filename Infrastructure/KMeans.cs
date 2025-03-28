@@ -11,7 +11,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Diploma.Application.Services
 {
-    public class KMeans : IClusterAnalyzer, IKMeans
+    public class KMeans<T> : IClusterAnalyzer<T>, IKMeans
     {
 
         double[,] _data;
@@ -29,6 +29,10 @@ namespace Diploma.Application.Services
             _СentroidsInitializer = СentroidsInitializer;
             _maxIterations = maxIterations;
             _threshold = threshold;
+        } 
+        public KMeans()
+        {
+
         }
 
         /// <summary>
@@ -39,7 +43,7 @@ namespace Diploma.Application.Services
         /// <param name="_maxIterations">Максимальное число итераций.</param>
         /// <param name="_threshold">Порог для остановки (изменение центроидов).</param>
         /// <returns>Объект IClusterResultRepository с назначениями кластеров.</returns>
-        public double[,] Analysis()
+        public double[,] Analysis(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
         {
 
 
@@ -141,7 +145,7 @@ namespace Diploma.Application.Services
         /// <param name="_data">Нормализованная матрица данных (каждая строка – объект, столбцы – признаки).</param>
         /// <param name="_k">Желаемое число кластеров.</param>
         /// <returns>Двумерный массив (double[,]) центройдов.</returns>
-        static double[,] CentroidInitializer(double[,] _data, int _k)
+       private static double[,] CentroidInitializer(double[,] _data, int _k)
         {
             // Количество объектов (строк) в переданном массиве данных
             int numObjects = _data.GetLength(0);

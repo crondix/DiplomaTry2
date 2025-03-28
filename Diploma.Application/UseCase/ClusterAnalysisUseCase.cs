@@ -1,39 +1,41 @@
 ﻿using System.Linq.Expressions;
+using System.Numerics;
 using System.Threading.Tasks;
 
+using A_Diploma.Domain.Interfaces.Helpers;
+using A_Diploma.Domain.Interfaces.Repository;
+
+using Diploma.Application.Interfaces.ClasterMethods;
 using Diploma.Domain.Entities;
 using Diploma.Domain.Interfaces;
 using Diploma.Infrastructure.Interfaces.Helpers;
 
 namespace Diploma.Application.UseCase
 {
-    public class ClusterAnalysisUseCase
+    public class ClusterAnalysisUseCase<T,B> 
     {
-        private readonly IClusterAnalyzer _analyzer;
-        private readonly IClusterItemRepository _repository;
-        private readonly IToMatrixConverter _converter;
+        private readonly IKMeans<B> _analyzer;
+        private readonly IRepository<T> _repository;
+        private readonly IToMatrixConverter<T> _converter;
         private readonly IMatrixNormalizer _normolaizer;
-
+        private readonly IPropertySelectors<T> _propetys;
         // Зависимость внедряется через конструктор
-        public ClusterAnalysisUseCase(IClusterAnalyzer analyzer, IToMatrixConverter converter, IMatrixNormalizer normolaizer, IClusterItemRepository repository)
+        public ClusterAnalysisUseCase(IKMeans<B> analyzer, IToMatrixConverter<T> converter, IMatrixNormalizer normolaizer, IRepository<T> repository, IPropertySelectors<T> propetys)
         {
             _analyzer = analyzer;
             _converter = converter;
             _normolaizer = normolaizer;
             _repository = repository;
+            _propetys = propetys;
         }
 
-        public async Task<IEnumerable<ClusterItem>> Execute()
+        public async Task<IEnumerable<B>> Execute()
         {
-            IEnumerable<ClusterItem> data = await _repository.GetAllAsync();
-            Expression<Func<ClusterItem, double>>[] propertySelectors = new[]
-        {
-            item => item., // Предполагаемые свойства
-
-        };
-            var matrix = _converter.Convert(data,);
-            var normalaizMatrix = _normolaizer.Normalize();
-            IEnumerable<ClusterItem> сlusterizationResult = _analyzer.Analyze();
+            IEnumerable<T> data = await _repository.GetAllAsync();
+            
+            var matrix = _converter.Convert(data.ToArray(), _propetys.propertySelectors);
+            var normalaizMatrix = _normolaizer.Normalize(matrix);
+            var сlusterizationResult = _analyzer.Execute( data, 3, 100, 1e-6);
 
             return сlusterizationResult;
 

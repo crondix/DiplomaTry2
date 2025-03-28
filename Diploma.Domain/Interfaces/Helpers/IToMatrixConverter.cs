@@ -10,6 +10,6 @@ namespace Diploma.Infrastructure.Interfaces.Helpers
     public interface IToMatrixConverter<T>
     {
 
-        public double[,] Convert(ICollection<object> objects, Expression<Func<T, double>>[] propertySelectors);
+        public double[,] Convert(ICollection<T> objects, Expression<Func<T, double>>[] propertySelectors);
     }
 }

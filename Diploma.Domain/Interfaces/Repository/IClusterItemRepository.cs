@@ -5,12 +5,14 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+using A_Diploma.Domain.Interfaces.Repository;
+
 using Diploma.Application.Interfaces;
 using Diploma.Domain.Entities;
 
 namespace Diploma.Domain.Interfaces
 {
-    public interface IClusterItemRepository
+    public interface IClusterItemRepository : IRepository<ClusterItem>
     {
         public Task<ClusterItem> GetByIdAsync(Guid id);
         public Task<IEnumerable<ClusterItem>> GetAllAsync();

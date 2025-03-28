@@ -8,8 +8,8 @@ using Diploma.Domain.Entities;
 
 namespace Diploma.Domain.Interfaces
 {
-    public interface IClusterAnalyzer
+    public interface IClusterAnalyzer<T>
     {
-        public IEnumerable<ClusterItem> Analyze();
+        public IEnumerable<T> Execute(params List<object> args);
     }
 }
