@@ -4,8 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using A_Diploma.Domain.Interfaces.ClasterMethods;
+
 using Diploma.Application.Interfaces.ClasterMethods;
 using Diploma.Domain.Interfaces;
+using Diploma.Domain.Interfaces.ClasterMethods;
 
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -16,20 +19,37 @@ namespace Diploma.Application.Services
 
         double[,] _data;
         int _k;
-        CentroidInitializationFunc _СentroidsInitializer;
+        CentroidInitializationFunc _centroidsInitializer;
+        double[,] _centroids;
         int _maxIterations;
         double _threshold;
 
         public delegate double[,] CentroidInitializationFunc(double[,] _data, int _k);
 
-        public KMeans(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
+        public KMeans(double[,] data, int k, CentroidInitializationFunc centroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
         {
             _data = data;
             _k = k;
-            _СentroidsInitializer = СentroidsInitializer;
+            _centroidsInitializer = centroidsInitializer;
+            _maxIterations = maxIterations;
+            _threshold = threshold;
+        }   
+        public KMeans(double[,] data, int k, double[,] centroids, int maxIterations = 100, double threshold = 1e-6)
+        {
+            _data = data;
+            _k = k;
+             _centroids = centroids;
             _maxIterations = maxIterations;
             _threshold = threshold;
         } 
+        public KMeans(IKMeansOptions options)
+        {
+            _data = options.Matrix;
+            _k =options.k;
+            _centroids = options.Сentroids;
+            _maxIterations = options.maxIterations;
+            _threshold = options.threshold;
+        }   
         public KMeans()
         {
 

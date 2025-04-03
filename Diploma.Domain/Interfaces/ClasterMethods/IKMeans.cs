@@ -9,7 +9,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 
-namespace Diploma.Application.Interfaces.ClasterMethods
+namespace Diploma.Domain.Interfaces.ClasterMethods
 {
     public interface IKMeans<T>
     {
