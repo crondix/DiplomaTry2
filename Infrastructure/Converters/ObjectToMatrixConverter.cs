@@ -39,7 +39,7 @@ namespace C_Diploma.Infrastructure.Converters
         /// а столбцы — выбранным свойствам.</returns>
       
 
-        public double[,] Convert(ICollection<object> objects, Expression<Func<T, double>>[] propertySelectors)
+        public double[,] Convert(ICollection<T> objects, Expression<Func<T, double>>[] propertySelectors)
         {
             var propertyFuncs = _propertySelectors.Select(selector => selector.Compile()).ToArray();
             double[,] matrix = new double[_objects.Length, propertyFuncs.Length];

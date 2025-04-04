@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Threading.Tasks;
 
+using A_Diploma.Domain.Interfaces;
 using A_Diploma.Domain.Interfaces.Helpers;
 using A_Diploma.Domain.Interfaces.Repository;
 
@@ -21,7 +22,7 @@ namespace Diploma.Application.UseCase
         private readonly IMatrixNormalizer _normolaizer;
         private readonly IPropertySelectors<T> _propetys;
         // Зависимость внедряется через конструктор
-        public ClusterAnalysisUseCase(IClusterAnalyzer<B> analyzer, IToMatrixConverter<T> converter, IMatrixNormalizer normolaizer, IRepository<T> repository, IPropertySelectors<T> propetys)
+        public ClusterAnalysisUseCase(IClusterAnalyzer<B> analyzer, IClusterOptions options, IToMatrixConverter<T> converter, IMatrixNormalizer normolaizer, IRepository<T> repository,  IPropertySelectors<T> propetys)
         {
             _analyzer = analyzer;
             _converter = converter;

@@ -46,7 +46,7 @@ namespace Diploma.Application.Services
         {
             _data = options.Matrix;
             _k =options.k;
-            _centroids = options.Сentroids;
+            _centroids = options.Centroids;
             _maxIterations = options.maxIterations;
             _threshold = options.threshold;
         }   

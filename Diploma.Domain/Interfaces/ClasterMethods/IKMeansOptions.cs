@@ -10,7 +10,7 @@ namespace A_Diploma.Domain.Interfaces.ClasterMethods
     {
 
         public int k { get; set; }
-        public double[,] Сentroids { get; set; }
+        public double[,] Centroids { get; set; }
         public int maxIterations { get; set; }
         public double threshold { get; set; }
     }

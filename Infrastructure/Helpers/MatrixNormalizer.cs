@@ -11,19 +11,45 @@ namespace Diploma.Application.Helpers
 {
     class MatrixNormalizer : IMatrixNormalizer
     {
-        private double[,] _matrix;
+        private double[,]? _matrix { get; set; }
+
         public MatrixNormalizer(double[,] matrix)  
         {
             _matrix = matrix;
+            
+        }   
+        public MatrixNormalizer()  
+        {
         }
         /// <summary>
         /// Нормализует матрицу по столбцам: для каждого столбца выполняется нормализация:
         /// (value - min) / (max - min)
         /// </summary>
+        ///<remarks> 
+        ///Для данной перегрузки метода используется матрица, которая была передана в конструктор.
+        ///</remarks> 
+        /// <exception cref="ArgumentNullException">Если в конструктор передана null матрица.</exception>
+
         public double[,] Normalize()
         {
-            int rows = _matrix.GetLength(0);
-            int columns = _matrix.GetLength(1);
+            if (_matrix != null)
+            {
+                return Normalize(_matrix);
+            }
+            else
+            {
+                throw new ArgumentNullException("Matrix is null");
+            }
+        }
+        /// <summary>
+        /// Нормализует матрицу по столбцам: для каждого столбца выполняется нормализация:
+        /// (value - min) / (max - min)
+        /// </summary>
+
+        public double[,] Normalize(double[,] matrix)
+        {
+            int rows = matrix.GetLength(0);
+            int columns = matrix.GetLength(1);
             double[,] normalized = new double[rows, columns];
 
             for (int j = 0; j < columns; j++)
@@ -32,12 +58,12 @@ namespace Diploma.Application.Helpers
                 double max = double.MinValue;
                 for (int i = 0; i < rows; i++)
                 {
-                    if (_matrix[i, j] < min) min = _matrix[i, j];
-                    if (_matrix[i, j] > max) max = _matrix[i, j];
+                    if (matrix[i, j] < min) min = matrix[i, j];
+                    if (matrix[i, j] > max) max = matrix[i, j];
                 }
                 for (int i = 0; i < rows; i++)
                 {
-                    normalized[i, j] = (_matrix[i, j] - min) / (max - min);
+                    normalized[i, j] = (matrix[i, j] - min) / (max - min);
                 }
             }
 
