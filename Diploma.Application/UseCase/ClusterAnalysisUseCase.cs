@@ -29,6 +29,7 @@ namespace Diploma.Application.UseCase
             _normolaizer = normolaizer;
             _repository = repository;
             _propetys = propetys;
+            _analyzer.Options = options;
         }
 
         public async Task<IEnumerable<B>> Execute()

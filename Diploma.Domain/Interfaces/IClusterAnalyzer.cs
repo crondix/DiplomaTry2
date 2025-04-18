@@ -13,7 +13,7 @@ namespace Diploma.Domain.Interfaces
     public interface IClusterAnalyzer<T>
     {
         public IClusterOptions Options { get; set; }
-        public IEnumerable<T> Execute();
+        public ICollection<T> Execute();
         
     }
 }

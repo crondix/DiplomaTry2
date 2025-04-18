@@ -11,7 +11,7 @@ namespace C_Diploma.Infrastructure.Converters
 {
     class ToObjectToMatrixConverter<T> : IToMatrixConverter<T>
     {
-        private T[] _objects;
+        private ICollection<T> _objects;
         private Expression<Func<T, double>>[] _propertySelectors;
 
  
@@ -41,11 +41,12 @@ namespace C_Diploma.Infrastructure.Converters
 
         public double[,] Convert(ICollection<T> objects, Expression<Func<T, double>>[] propertySelectors)
         {
+
             var propertyFuncs = _propertySelectors.Select(selector => selector.Compile()).ToArray();
-            double[,] matrix = new double[_objects.Length, propertyFuncs.Length];
-            for (int i = 0; i < _objects.Length; i++)
+            double[,] matrix = new double[_objects.Count, propertyFuncs.Length];
+            for (int i = 0; i < _objects.Count; i++)
             {
-                T obj = _objects[i] ?? throw new ArgumentNullException($"Объект с индексом {i} равен null.");
+                T obj = _objects.ElementAt(i) ?? throw new ArgumentNullException($"Объект с индексом {i} равен null.");
                 var values = propertyFuncs.Select(func => func(obj)).ToArray();
                 for (int j = 0; j < values.Length; j++)
                 {
