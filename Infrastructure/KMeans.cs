@@ -58,8 +58,8 @@ namespace Diploma.Application.Services
 
 
         public delegate double[,] CentroidInitializationFunc(double[,] _data, int _k);
-       
 
+        #region Конструкторы
         public KMeans(double[,] data, int k, CentroidInitializationFunc centroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
         {
             _data = data;
@@ -94,13 +94,13 @@ namespace Diploma.Application.Services
         {
 
         }
-
+        #endregion
 
         public ICollection<T>? Execute() {
 
 
             ArgumentNullException.ThrowIfNull(_data);
-            int[]? t = Analysis(Опции.Matrix, Опции.k, Опции.Centroids, Опции.maxIterations, Опции.threshold);
+            int[]? t = AnalysisWithCustomCentroids(Опции.Matrix, Опции.k, Опции.Centroids, Опции.maxIterations, Опции.threshold);
                 if (t is null) return null;
                 return t.Select(x => (T)Convert.ChangeType(x, typeof(T))).ToList(); 
            
@@ -108,15 +108,14 @@ namespace Diploma.Application.Services
 
 
 
-        public int[] Analysis(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
+        int[] AnalysisWithCustomCentroidInitializationFunc(double[,] data, int k, CentroidInitializationFunc СentroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
         {
-            var centroids = СentroidsInitializer(_data, _k);
-            return Analysis(data, k, centroids, maxIterations, threshold);
+            return AnalysisWithCustomCentroids(data, k, СentroidsInitializer(data, k), maxIterations, threshold);
         }
-
-
-       
-
+        int[] Analysis(double[,] data, int k, int maxIterations = 100, double threshold = 1e-6)
+        {
+            return AnalysisWithCustomCentroids(data, k, _InitCentroids(data, k), maxIterations, threshold);
+        }
 
         /// <summary>
         /// Выполняет кластеризацию методом _k-средних для нормализованной матрицы данных.
@@ -126,7 +125,7 @@ namespace Diploma.Application.Services
         /// <param name="_maxIterations">Максимальное число итераций.</param>
         /// <param name="_threshold">Порог для остановки (изменение центроидов).</param>
         /// <returns>Объект IClusterResultRepository с назначениями кластеров.</returns>
-        public int[] Analysis(double[,] data, int k, double[,] startCentroids , int maxIterations = 100, double threshold = 1e-6)
+        int[] AnalysisWithCustomCentroids(double[,] data, int k, double[,] startCentroids , int maxIterations = 100, double threshold = 1e-6)
         {
 
             // Количество объектов (строк) в переданном массиве данных
@@ -232,26 +231,21 @@ namespace Diploma.Application.Services
         /// Если k == 3 — три фиксированные точки <1, 0.5, 0>.
         /// Иначе — k случайных наблюдений из набора данных.
         /// </summary>
-        private double[,] InitCentroids()
+        private double[,] _InitCentroids(double[,] data, int k)
         {
-            ArgumentNullException.ThrowIfNull(_data);
 
-            // 1) Извлекаем значение; если _k == null — бросаем исключение
-            int k = _k ?? throw new ArgumentNullException(nameof(_k));
 
             if (k <= 0)
-                throw new ArgumentOutOfRangeException(nameof(_k), k, "_k должно быть > 0.");
+                throw new ArgumentOutOfRangeException(nameof(k), k, "k должно быть > 0.");
 
-            int numObjects = _data.GetLength(0);
-            int numFeatures = _data.GetLength(1);
+            int numObjects = data.GetLength(0);
+            int numFeatures = data.GetLength(1);
 
             if (k > numObjects)
-                throw new ArgumentOutOfRangeException(nameof(_k), k,
-                    "_k не может превышать количество объектов в наборе данных.");
+                throw new ArgumentOutOfRangeException(nameof(k), k,
+                    "k не может превышать количество объектов в наборе данных.");
 
             var centroids = new double[k, numFeatures];
-
-
 
             // Случайная выборка k уникальных объектов
             var rand = Random.Shared;
@@ -264,13 +258,12 @@ namespace Diploma.Application.Services
             foreach (int idx in chosenIndices)
             {
                 for (int j = 0; j < numFeatures; j++)
-                    centroids[row, j] = _data[idx, j];
+                    centroids[row, j] = data[idx, j];
                 row++;
             }
 
             return centroids;
         }
-
 
     }
 }
