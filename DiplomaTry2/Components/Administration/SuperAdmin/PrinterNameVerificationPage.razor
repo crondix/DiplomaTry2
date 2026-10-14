@@ -35,12 +35,12 @@
                     <InputText id="model-name" class="form-control" @bind-Value="draft.Name" />
                     <div class="model-fields">
                         <div><label for="model-color">Цветная печать</label>
-                            <InputSelect id="model-color" class="form-select" @bind-Value="draft.IsColor">
+                            <InputSelect TValue="string" id="model-color" class="form-select" @bind-Value="ColorChoice">
                                 <option value="">Не указано</option><option value="true">Да</option><option value="false">Нет</option>
                             </InputSelect>
                         </div>
                         <div><label for="model-duplex">Двусторонняя печать</label>
-                            <InputSelect id="model-duplex" class="form-select" @bind-Value="draft.IsDuplexing">
+                            <InputSelect TValue="string" id="model-duplex" class="form-select" @bind-Value="DuplexChoice">
                                 <option value="">Не указано</option><option value="true">Да</option><option value="false">Нет</option>
                             </InputSelect>
                         </div>

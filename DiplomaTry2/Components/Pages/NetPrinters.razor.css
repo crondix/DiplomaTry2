@@ -1,0 +1,6 @@
+.printer-assignment { margin: 1rem 0; padding: 1.25rem; min-width: 0; border: 1px solid rgba(255,255,255,.3); border-radius: 12px; background: rgba(20,22,25,.94); color: #f3f3f3; }
+.printer-assignment h2 { color: #fff; }
+.printer-assignment label { display: block; margin-bottom: .4rem; }
+.printer-assignment select { background-color: #292d32; color: #fff; border-color: #737b86; }
+.printer-assignment .btn-outline-secondary { color: #eee; border-color: #9ca3ad; }
+.printer-assignment .btn-outline-secondary:hover { color: #fff; background: #4a515b; }

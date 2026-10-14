@@ -19,7 +19,7 @@
 
 @if (assignPrinter is not null)
 {
-    <section class="card p-3 my-3" aria-labelledby="assign-model-title">
+    <section class="printer-assignment" aria-labelledby="assign-model-title">
         <h2 id="assign-model-title" class="h5">Модель принтера «@assignPrinter.Name»</h2>
         <p>Драйвер: @(assignPrinter.DriverName ?? "Не указан")</p>
         <label for="assigned-model">Модель из справочника</label>

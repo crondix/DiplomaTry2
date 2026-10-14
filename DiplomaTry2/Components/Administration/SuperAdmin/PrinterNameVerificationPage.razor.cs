@@ -25,6 +25,17 @@ public partial class PrinterNameVerificationPage
     private List<string> available = [], chosen = [];
     private IEnumerable<string> leftSelection = [], rightSelection = [];
     private string renamedName = "";
+    private string ColorChoice
+    {
+        get => draft?.IsColor switch { true => "true", false => "false", _ => "" };
+        set { if (draft is not null) draft.IsColor = ParseChoice(value); }
+    }
+    private string DuplexChoice
+    {
+        get => draft?.IsDuplexing switch { true => "true", false => "false", _ => "" };
+        set { if (draft is not null) draft.IsDuplexing = ParseChoice(value); }
+    }
+    private static bool? ParseChoice(string value) => value switch { "true" => true, "false" => false, _ => null };
 
     protected override async Task OnInitializedAsync()
     {

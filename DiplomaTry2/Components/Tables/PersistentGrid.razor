@@ -34,12 +34,14 @@
                 }
                 @if (RowActions is not null)
                 {
-                    <DxGridDataColumn Name="RowActions" FieldName="RowActions" Caption="Действия" UnboundType="GridUnboundColumnType.String"
-                                      AllowSort="false" AllowGroup="false" AllowFilter="false" Width="240px" MinWidth="160">
+                    <DxGridCommandColumn Name="RowActions" Width="220px" MinWidth="160"
+                                         FixedPosition="GridColumnFixedPosition.Right" ShowInColumnChooser="false" AllowReorder="false"
+                                         NewButtonVisible="false" EditButtonVisible="false" DeleteButtonVisible="false">
+                        <HeaderTemplate>Действия</HeaderTemplate>
                         <CellDisplayTemplate>
-                            <div @onclick:stopPropagation="true">@RowActions((TRow)context.DataItem)</div>
+                            <div class="print-grid__row-actions" @onclick:stopPropagation="true">@RowActions((TRow)context.DataItem)</div>
                         </CellDisplayTemplate>
-                    </DxGridDataColumn>
+                    </DxGridCommandColumn>
                 }
             </Columns>
         </DxGrid>
@@ -86,7 +88,7 @@
         var user = (await Authentication.GetAuthenticationStateAsync()).User;
         var identity = user.FindFirstValue(ClaimTypes.PrimarySid) ?? user.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? user.Identity?.Name ?? "anonymous";
-        var signature = string.Join("|", Columns.Select(column => column.Field));
+        var signature = string.Join("|", Columns.Select(column => column.Field)) + (RowActions is null ? "" : "|commands:v1");
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(identity + "|" + signature)));
         legacyStorageKey = $"diploma:grid:v1:{TableKey}:{hash}";
         storageKey = $"diploma:grid:v2:{TableKey}:{hash}";
@@ -100,8 +102,8 @@
         rows = Items.Select(RowSelector).ToArray();
     }
 
-    private string InitialWidth(GridColumn column) =>
-        (100d * column.WidthGrow / Math.Max(1, Columns.Where(item => item.Visible).Sum(item => item.WidthGrow)))
+    private string? InitialWidth(GridColumn column) =>
+        RowActions is not null ? null : (100d * column.WidthGrow / Math.Max(1, Columns.Where(item => item.Visible).Sum(item => item.WidthGrow)))
             .ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "%";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -140,8 +142,9 @@
                         foreach (var column in grid.GetColumns().OfType<IGridDataColumn>().Where(column => column.Visible))
                         {
                             var width = measured.FirstOrDefault(item => item.Field == column.FieldName);
-                            if (width is not null) column.Width = (100 * width.Width / total)
-                                .ToString("0.######", System.Globalization.CultureInfo.InvariantCulture) + "%";
+                            if (width is not null) column.Width = RowActions is not null
+                                ? width.Width.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "px"
+                                : (100 * width.Width / total).ToString("0.######", System.Globalization.CultureInfo.InvariantCulture) + "%";
                         }
                     }
                     finally { grid.EndUpdate(); }
@@ -168,6 +171,17 @@
                 if (layout is not null)
                 {
                     if (migrating) layout = GridLayoutPolicy.Migrate(layout, Columns);
+                    if (RowActions is not null)
+                    {
+                        // Legacy layouts stored RowActions as an ordinary data column and could hide it.
+                        layout = new GridPersistentLayout
+                        {
+                            PageIndex = layout.PageIndex, PageSize = layout.PageSize, ShowAllRows = layout.ShowAllRows,
+                            SearchText = layout.SearchText, FilterCriteria = layout.FilterCriteria,
+                            Columns = new GridPersistentLayoutCollection<GridPersistentLayoutColumn>(
+                                layout.Columns.Where(column => Columns.Any(definition => definition.Field == column.FieldName)))
+                        };
+                    }
                     args.Layout = layout;
                     searchText = layout.SearchText ?? "";
                     showSearch = !string.IsNullOrWhiteSpace(layout.SearchText);
@@ -198,7 +212,7 @@
             visibleSignature = signature;
             if (signature.Length > 0)
             {
-                fillPending = true;
+                fillPending = RowActions is null;
                 await InvokeAsync(StateHasChanged);
             }
         }

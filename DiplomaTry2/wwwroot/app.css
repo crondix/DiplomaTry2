@@ -211,6 +211,26 @@ body.table-column-resizing * {
     width: 100%;
 }
 
+.print-grid__row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+}
+
+.app-shell__content .print-grid__row-actions .btn-outline-danger {
+    color: #ffb7bd;
+    border-color: #ed8793;
+    background: rgba(70, 15, 23, .7);
+    border-radius: 999px;
+}
+
+.app-shell__content .print-grid__row-actions .btn-outline-danger:hover {
+    color: #fff;
+    background: #a32e3f;
+}
+
 .print-grid__data [data-grid-field] {
     overflow-wrap: anywhere;
 }
