@@ -15,7 +15,7 @@
             <img src="images/events/help.png" alt="" />
             <span>Справка</span>
         </button>
-        <button class="events-page__tile" type="button" @onclick='() => ShowNavigationNotice("Настройки пока не реализованы.")'>
+        <button class="events-page__tile" type="button" @onclick="() => sourceDialogVisible = true">
             <img src="images/events/settings.png" alt="" />
             <span>Настройки</span>
         </button>
@@ -26,8 +26,6 @@
             <h1 id="events-title">События сервера печати</h1>
             <p>Последние 50 сохранённых событий. Импорт читает выбранный источник.</p>
         </div>
-
-        <PrintSourceSwitcher />
 
         <div class="events-page__actions">
             <button class="btn btn-outline-primary" @onclick="LoadData" disabled="@(Loading || Adding)">@(Loading ? "Чтение…" : "Обновить таблицу")</button>
@@ -76,7 +74,10 @@
     </aside>
 </section>
 
+<PrintSourceDialog @bind-Visible="sourceDialogVisible" Title="Настройки событий печати" />
+
 @code {
+    private bool sourceDialogVisible;
     private static readonly GridColumn[] EventColumns = [
         new("Время", "Time", DisplayFormat: "dd.MM.yyyy HH:mm:ss"), new("Отправитель", "Sender"), new("Компьютер", "Computer"),
         new("Принтер", "Printer", WidthGrow: 2), new("Документ", "Document", WidthGrow: 2),

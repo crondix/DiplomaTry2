@@ -7,7 +7,6 @@
 @inject PrinterModelService ModelService
 @inject IPrinterSource PrinterSource
 @inject PrintSourceSelection Selection
-@inject PrintSourcePreferences Preferences
 @inject ILogger<PrinterNameVerificationPage> Logger
 
 <PageTitle>Модели принтеров</PageTitle>
@@ -133,7 +132,7 @@
         {
             <EditForm id="model-edit-form" Model="draft" OnValidSubmit="SaveModelAsync" FormName="printer-model-edit">
                 <DataAnnotationsValidator /><ValidationSummary />
-                <fieldset class="model-fieldset" disabled="@busy"><PrinterModelCard Draft="draft" /></fieldset>
+                <fieldset class="model-fieldset" disabled="@busy"><PrinterModelCard Draft="draft" Busy="busy" ImageSelected="UploadImageAsync" /></fieldset>
             </EditForm>
         }
         @if (error is not null) { <p class="model-dialog-error" role="alert">@error</p> }
@@ -141,7 +140,7 @@
     <FooterContentTemplate>
         <div class="model-actions">
             <button type="button" class="btn btn-outline-secondary" disabled="@busy" @onclick="() => editorVisible = false">Отмена</button>
-            <button type="submit" form="model-edit-form" class="btn btn-primary" disabled="@busy">@(busy ? "Сохранение…" : "Сохранить")</button>
+            <button type="submit" form="model-edit-form" class="btn btn-primary" disabled="@busy">@(busy ? (imageLoading ? "Загрузка изображения…" : "Сохранение…") : "Сохранить")</button>
         </div>
     </FooterContentTemplate>
 </DxPopup>
@@ -161,17 +160,4 @@
     </FooterContentTemplate>
 </DxPopup>
 
-<DxPopup @bind-Visible="settingsDialogVisible" HeaderText="Настройки моделей принтеров" Width="95vw" MaxWidth="min(760px, calc(100vw - 4rem))" MaxHeight="90vh" ShowFooter="true" Scrollable="true" CloseOnOutsideClick="false"
-         HeaderCssClass="printer-model-dialog-header" BodyCssClass="printer-model-dialog-body" FooterCssClass="printer-model-dialog-footer">
-    <BodyContentTemplate Context="popupBody">
-        @if (settingsDialogVisible)
-        {
-            <AuthorizeView Roles="Admin" Context="settingsAuthorization">
-                <Authorized><PrintSourceSwitcher /></Authorized>
-                <NotAuthorized><p>Источник данных: @(Selection.IsFixture ? "Тестовые данные" : $"Сервер {Selection.ServerName}"). Изменение источника доступно администратору.</p></NotAuthorized>
-            </AuthorizeView>
-            @if (error is not null) { <p class="model-dialog-error" role="alert">@error</p> }
-        }
-    </BodyContentTemplate>
-    <FooterContentTemplate><button type="button" class="btn btn-outline-secondary" @onclick="() => settingsDialogVisible = false">Закрыть</button></FooterContentTemplate>
-</DxPopup>
+<PrintSourceDialog @bind-Visible="settingsDialogVisible" Title="Настройки моделей принтеров" Error="@error" />

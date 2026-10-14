@@ -218,6 +218,8 @@ namespace DiplomaTry2.Migrations
 
             modelBuilder.Entity("DiplomaModels.PrinterModel", b =>
                 {
+                    b.Property<byte[]>("ImageData").HasColumnType("varbinary(max)");
+                    b.Property<string>("ImageContentType").HasMaxLength(40).HasColumnType("nvarchar(40)");
                     b.Property<string>("DeviceType").HasMaxLength(80).HasColumnType("nvarchar(80)");
                     b.Property<string>("DeviceFunctions").HasMaxLength(200).HasColumnType("nvarchar(200)");
                     b.Property<string>("PrintTechnology").HasMaxLength(80).HasColumnType("nvarchar(80)");

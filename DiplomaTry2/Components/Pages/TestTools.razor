@@ -1,4 +1,5 @@
 @page "/test-tools"
+@rendermode RenderMode.InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @using DiplomaTry2.Components.Layout
 
@@ -9,10 +10,13 @@
     <h1 id="test-tools-title">Тестовые страницы</h1>
     <p>Здесь собраны временные инструменты. Выбор источника действует для текущей вкладки браузера.</p>
 
-    <PrintSourceSwitcher />
+    <button class="btn btn-outline-primary" @onclick="() => sourceDialogVisible = true">Настройки источника</button>
 
     <div class="test-tools__links">
         <a href="TestS">Проверка моделей принтеров</a>
         <a href="js">Проверка хранения данных в браузере</a>
     </div>
 </section>
+
+<PrintSourceDialog @bind-Visible="sourceDialogVisible" />
+@code { private bool sourceDialogVisible; }

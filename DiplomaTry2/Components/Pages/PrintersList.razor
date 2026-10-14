@@ -4,10 +4,7 @@
 @using DiplomaTry2.Components.Layout
 
 <PageTitle>Сетевые принтеры</PageTitle>
-<PrintDataFrame Title="Сетевые принтеры" Description="Этот список читается из источника и не сохраняется в базе данных." ShowEditAction="true">
-<AuthorizeView Roles="Admin">
-    <PrintSourceSwitcher />
-</AuthorizeView>
+<PrintDataFrame Title="Сетевые принтеры" Description="Этот список читается из источника и не сохраняется в базе данных." ShowEditAction="true" SourceSettings="true">
 <button class="btn btn-primary mb-3" @onclick="LoadingData" disabled="@Loading">@(Loading ? "Загрузка…" : "Получить принтеры")</button>
 
 @if (!string.IsNullOrWhiteSpace(message))

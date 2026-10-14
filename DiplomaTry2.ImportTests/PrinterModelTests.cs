@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using DiplomaModels;
 using DiplomaTry2.Data;
 using DiplomaTry2.InterFaces;
@@ -7,12 +8,67 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.AspNetCore.Components.Forms;
 using Xunit;
 
 namespace DiplomaTry2.ImportTests;
 
 public sealed class PrinterModelTests
 {
+    private static readonly byte[] TinyPng = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
+    [Fact]
+    public async Task Image_is_saved_with_card_excluded_from_list_and_can_be_removed()
+    {
+        using var database = new TestDatabase();
+        var service = new PrinterModelService(database);
+        await service.SaveAsync(new() { Name = "Image printer", ImageData = TinyPng, ImageContentType = "text/html" });
+        var listed = Assert.Single(await service.ListAsync());
+        Assert.Null(listed.ImageData);
+        var card = await service.GetAsync(listed.Id);
+        Assert.Equal(TinyPng, card.ImageData); Assert.Equal("image/png", card.ImageContentType);
+        Assert.StartsWith("data:image/png;base64,", PrinterModelImage.Url(card.ImageData, card.ImageContentType));
+        await service.SaveAsync(new() { Id = card.Id, Name = card.ModelName });
+        var removed = await service.GetAsync(card.Id);
+        Assert.Null(removed.ImageData); Assert.Null(removed.ImageContentType);
+        Assert.Equal("images/menu/printer_models.png", PrinterModelImage.Url(removed.ImageData, removed.ImageContentType));
+    }
+
+    [Fact]
+    public async Task Upload_checks_actual_format_and_size_before_opening_large_file()
+    {
+        var image = new BrowserImage(TinyPng);
+        Assert.Equal(TinyPng, await PrinterModelImage.ReadAsync(image));
+        Assert.Equal(PrinterModelImage.MaxBytes, image.RequestedLimit);
+        var tooLarge = new BrowserImage(TinyPng, PrinterModelImage.MaxBytes + 1L);
+        await Assert.ThrowsAsync<ValidationException>(() => PrinterModelImage.ReadAsync(tooLarge));
+        Assert.Equal(0, tooLarge.RequestedLimit);
+        await Assert.ThrowsAsync<ValidationException>(() => PrinterModelImage.ReadAsync(new BrowserImage("<svg></svg>"u8.ToArray())));
+    }
+
+    [Fact]
+    public async Task Unsupported_and_oversized_images_are_rejected_before_saving()
+    {
+        using var database = new TestDatabase();
+        var service = new PrinterModelService(database);
+        await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(new() { Name = "Invalid", ImageData = "<html></html>"u8.ToArray() }));
+        await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(new() { Name = "Invalid", ImageData = new byte[PrinterModelImage.MaxBytes + 1] }));
+        Assert.Empty(await service.ListAsync());
+    }
+
+    private sealed class BrowserImage(byte[] data, long? advertisedSize = null) : IBrowserFile
+    {
+        public string Name => "untrusted-name.svg";
+        public DateTimeOffset LastModified => DateTimeOffset.UtcNow;
+        public long Size => advertisedSize ?? data.Length;
+        public string ContentType => "text/html";
+        public long RequestedLimit { get; private set; }
+        public Stream OpenReadStream(long maxAllowedSize = 512000, CancellationToken cancellationToken = default)
+        {
+            RequestedLimit = maxAllowedSize;
+            if (data.LongLength > maxAllowedSize) throw new IOException("Too large");
+            return new MemoryStream(data, writable: false);
+        }
+    }
     [Fact]
     public void Sql_server_snapshot_and_driver_migration_match_current_model()
     {
@@ -25,6 +81,8 @@ public sealed class PrinterModelTests
         var characteristics = db.GetService<IMigrator>().GenerateScript("20261014000000_PrinterDriverName", "20261014010000_PrinterModelCharacteristics");
         Assert.Contains("ADD [DeviceType] nvarchar(80) NULL", characteristics);
         Assert.Contains("ADD [MaximumMonthlyVolume] int NULL", characteristics);
+        var image = db.GetService<IMigrator>().GenerateScript("20261014010000_PrinterModelCharacteristics", "20261014020000_PrinterModelImage");
+        Assert.Contains("ADD [ImageData] varbinary(max) NULL", image);
     }
 
     [Fact]

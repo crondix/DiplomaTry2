@@ -4,8 +4,7 @@
 @using DiplomaTry2.Components.Layout
 
 <PageTitle>Сохранённые принтеры</PageTitle>
-<PrintDataFrame Title="Сохранённые принтеры" Description="Загрузить очереди из выбранного источника и назначить реальные модели устройств." ShowEditAction="true">
-<PrintSourceSwitcher />
+<PrintDataFrame Title="Сохранённые принтеры" Description="Загрузить очереди из выбранного источника и назначить реальные модели устройств." ShowEditAction="true" SourceSettings="true">
 <button class="btn btn-primary" disabled="@(busy || loadingSaved)" @onclick="ImportAsync">@(busy ? "Загрузка…" : "Загрузить принтеры")</button>
 
 @if (statusMessage is not null)

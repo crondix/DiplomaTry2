@@ -1,0 +1,35 @@
+@inject PrintSourceSelection Selection
+@inject PrintSourcePreferences Preferences
+
+<DxPopup Visible="Visible" VisibleChanged="VisibleChanged" HeaderText="@Title" Width="95vw" MaxWidth="min(760px, calc(100vw - 4rem))" MaxHeight="90vh"
+         ShowFooter="true" Scrollable="true" CloseOnOutsideClick="false"
+         HeaderCssClass="printer-model-dialog-header" BodyCssClass="printer-model-dialog-body" FooterCssClass="printer-model-dialog-footer">
+    <BodyContentTemplate>
+        @if (Visible)
+        {
+            <AuthorizeView Roles="Admin" Context="sourceAuthorization">
+                <Authorized><PrintSourceSwitcher /></Authorized>
+                <NotAuthorized><p>Источник данных: @(Selection.IsFixture ? "Тестовые данные" : $"Сервер {Selection.ServerName}"). Изменение источника доступно администратору.</p></NotAuthorized>
+            </AuthorizeView>
+            @if (loadError is not null || Error is not null) { <p class="alert alert-danger" role="alert">@(loadError ?? Error)</p> }
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <button type="button" class="btn btn-outline-secondary" @onclick="() => VisibleChanged.InvokeAsync(false)">Закрыть</button>
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    [Parameter] public string Title { get; set; } = "Настройки источника данных";
+    [Parameter] public string? Error { get; set; }
+    private string? loadError;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try { await Preferences.LoadAsync(); }
+        catch (JSException) { loadError = "Не удалось прочитать выбор источника. Повторите выбор в настройках."; }
+        await InvokeAsync(StateHasChanged);
+    }
+}

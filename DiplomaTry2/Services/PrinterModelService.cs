@@ -22,6 +22,8 @@ public sealed class PrinterModelDraft : IValidatableObject
     [Range(1, int.MaxValue, ErrorMessage = "Месячный объём должен быть положительным целым числом.")] public int? RecommendedMonthlyVolume { get; set; }
     [Range(1, int.MaxValue, ErrorMessage = "Месячный объём должен быть положительным целым числом.")] public int? MaximumMonthlyVolume { get; set; }
     [StringLength(200, ErrorMessage = "Интерфейсы: не более 200 символов.")] public string? Interfaces { get; set; }
+    public byte[]? ImageData { get; set; }
+    public string? ImageContentType { get; set; }
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (RecommendedMonthlyVolume.HasValue && MaximumMonthlyVolume.HasValue && RecommendedMonthlyVolume > MaximumMonthlyVolume)
@@ -39,7 +41,15 @@ public sealed class PrinterModelService(IDbContextFactory<ApplicationDbContext> 
     public async Task<List<PrinterModel>> ListAsync()
     {
         await using var db = await factory.CreateDbContextAsync();
-        return await db.PrinterModels.AsNoTracking().OrderBy(m => m.ModelName).ToListAsync();
+        // The list does not need potentially large image blobs; load them only for a card.
+        return await db.PrinterModels.AsNoTracking().OrderBy(m => m.ModelName).Select(m => new PrinterModel
+        {
+            Id = m.Id, ModelName = m.ModelName, IsColor = m.IsColor, IsDuplexing = m.IsDuplexing, MaxCopyPerPrint = m.MaxCopyPerPrint,
+            DeviceType = m.DeviceType, DeviceFunctions = m.DeviceFunctions, PrintTechnology = m.PrintTechnology,
+            MaximumPaperFormat = m.MaximumPaperFormat, MonochromeResolution = m.MonochromeResolution,
+            RecommendedMonthlyVolume = m.RecommendedMonthlyVolume, MaximumMonthlyVolume = m.MaximumMonthlyVolume,
+            Interfaces = m.Interfaces, ImageContentType = m.ImageContentType
+        }).ToListAsync();
     }
 
     public async Task<PrinterModel> GetAsync(int id)
@@ -53,6 +63,7 @@ public sealed class PrinterModelService(IDbContextFactory<ApplicationDbContext> 
     {
         if (settings is not null) await settings.RequireAdminAsync();
         Validator.ValidateObject(draft, new ValidationContext(draft), true);
+        var imageType = draft.ImageData is null ? null : PrinterModelImage.ContentType(draft.ImageData);
         if (string.IsNullOrWhiteSpace(draft.Name)) throw new ValidationException("Укажите название модели.");
         var key = NameKey(draft.Name);
         await using var db = await factory.CreateDbContextAsync();
@@ -72,6 +83,8 @@ public sealed class PrinterModelService(IDbContextFactory<ApplicationDbContext> 
         model.RecommendedMonthlyVolume = draft.RecommendedMonthlyVolume;
         model.MaximumMonthlyVolume = draft.MaximumMonthlyVolume;
         model.Interfaces = OptionalText(draft.Interfaces);
+        model.ImageData = draft.ImageData;
+        model.ImageContentType = imageType;
         if (draft.Id == 0) db.PrinterModels.Add(model);
         await db.SaveChangesAsync();
     }

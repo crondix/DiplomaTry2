@@ -51,6 +51,8 @@ namespace DiplomaModels
         public int? RecommendedMonthlyVolume { get; set; }
         public int? MaximumMonthlyVolume { get; set; }
         [MaxLength(200)] public string? Interfaces { get; set; }
+        [JsonIgnore] public byte[]? ImageData { get; set; }
+        [MaxLength(40)] public string? ImageContentType { get; set; }
         public virtual ICollection<PaperSize>? PaperSizes { get; set; }
 
     }

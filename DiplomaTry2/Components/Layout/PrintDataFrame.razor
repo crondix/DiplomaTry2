@@ -48,6 +48,11 @@
     </aside>
 </section>
 
+@if (SourceSettings)
+{
+    <PrintSourceDialog @bind-Visible="sourceDialogVisible" Title="@($"Настройки: {Title}")" />
+}
+
 @code {
     [Parameter, EditorRequired] public string Title { get; set; } = "";
     [Parameter] public string Description { get; set; } = "";
@@ -55,12 +60,15 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? RightActions { get; set; }
     [Parameter] public EventCallback SettingsRequested { get; set; }
+    [Parameter] public bool SourceSettings { get; set; }
+    private bool sourceDialogVisible;
 
     private string? notice;
     private void ShowNotice(string message) => notice = message;
     private async Task OpenSettingsAsync()
     {
         if (SettingsRequested.HasDelegate) await SettingsRequested.InvokeAsync();
+        else if (SourceSettings) sourceDialogVisible = true;
         else ShowNotice("Настройки пока не реализованы.");
     }
 }

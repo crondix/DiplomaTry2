@@ -1,6 +1,7 @@
 using DiplomaModels;
 using DiplomaTry2.Components.Tables;
 using DiplomaTry2.Services;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace DiplomaTry2.Components.Administration.SuperAdmin;
 
@@ -22,6 +23,7 @@ public partial class PrinterNameVerificationPage
     private int linkedPrinters;
     private string? error, message;
     private bool busy, showDrivers, reloadPending, modelsReady;
+    private bool imageLoading;
     private bool addDialogVisible, editorVisible, cardVisible, deleteDialogVisible, settingsDialogVisible;
     private bool AnyDialogOpen => addDialogVisible || editorVisible || cardVisible || deleteDialogVisible || settingsDialogVisible;
     private Dictionary<string, string> originalDrivers = [];
@@ -33,13 +35,6 @@ public partial class PrinterNameVerificationPage
     {
         Selection.Changed += SourceChanged;
         await RunAsync(ReloadAsync);
-    }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender) return;
-        try { await Preferences.LoadAsync(); }
-        catch (Microsoft.JSInterop.JSException) { error = "Не удалось прочитать настройки источника. Откройте настройки и повторите выбор."; }
-        await InvokeAsync(StateHasChanged);
     }
     private async Task ReloadAsync()
     {
@@ -76,18 +71,30 @@ public partial class PrinterNameVerificationPage
     {
         CloseModelDialogs(); error = null; message = null; draft = new(); editorVisible = true;
     }
-    private void EditModel(int id)
+    private Task EditModel(int id) => RunAsync(async () =>
     {
-        var model = cardModel?.Id == id ? cardModel : models.Single(m => m.Id == id);
+        var model = cardModel?.Id == id ? cardModel : await catalog.GetAsync(id);
         CloseModelDialogs(); error = null; message = null;
         draft = new() { Id = id, Name = model.ModelName, IsColor = model.IsColor,
             IsDuplexing = model.IsDuplexing, MaxCopyPerPrint = model.MaxCopyPerPrint,
             DeviceType = model.DeviceType, DeviceFunctions = model.DeviceFunctions, PrintTechnology = model.PrintTechnology,
             MaximumPaperFormat = model.MaximumPaperFormat, MonochromeResolution = model.MonochromeResolution,
             RecommendedMonthlyVolume = model.RecommendedMonthlyVolume, MaximumMonthlyVolume = model.MaximumMonthlyVolume,
-            Interfaces = model.Interfaces };
+            Interfaces = model.Interfaces, ImageData = model.ImageData, ImageContentType = model.ImageContentType };
         editorVisible = true;
-    }
+    });
+    private Task UploadImageAsync(IBrowserFile file) => RunAsync(async () =>
+    {
+        imageLoading = true;
+        try
+        {
+            var target = draft ?? throw new InvalidOperationException("Откройте редактирование модели.");
+            var bytes = await PrinterModelImage.ReadAsync(file);
+            target.ImageData = bytes;
+            target.ImageContentType = PrinterModelImage.ContentType(bytes);
+        }
+        finally { imageLoading = false; }
+    });
     private Task SaveModelAsync() => RunAsync(async () =>
     {
         await catalog.SaveAsync(draft!); editorVisible = false; draft = null;

@@ -5,8 +5,22 @@
     <h2>@(Draft is not null ? (string.IsNullOrWhiteSpace(Draft.Name) ? "Новая модель" : Draft.Name) : Model?.ModelName)</h2>
     <div class="model-card__layout">
         <figure class="model-card__image">
-            <img src="images/menu/printer_models.png" alt="" />
+            <img src="@ImageUrl" alt="" />
             <figcaption>Модель принтера</figcaption>
+            @if (Draft is not null)
+            {
+                <div class="model-card__image-controls">
+                    <label for="model-image" class="model-card__upload">
+                        Изменить изображение
+                        <InputFile id="model-image" accept="image/png,image/jpeg,image/webp" disabled="@Busy" OnChange="ImageChanged" />
+                    </label>
+                    <small>PNG, JPEG или WebP, до 2 МБ. Изменения сохраняются вместе с карточкой.</small>
+                    @if (Draft.ImageData is not null)
+                    {
+                        <button type="button" disabled="@Busy" @onclick="RemoveImage">Убрать изображение</button>
+                    }
+                </div>
+            }
         </figure>
         <div class="model-card__characteristics">
             <section aria-labelledby="model-general-title">
@@ -92,6 +106,11 @@
 @code {
     [Parameter] public PrinterModel? Model { get; set; }
     [Parameter] public PrinterModelDraft? Draft { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public EventCallback<IBrowserFile> ImageSelected { get; set; }
+    private string ImageUrl => Draft is not null ? PrinterModelImage.Url(Draft.ImageData, Draft.ImageContentType) : PrinterModelImage.Url(Model?.ImageData, Model?.ImageContentType);
+    private Task ImageChanged(InputFileChangeEventArgs args) => ImageSelected.InvokeAsync(args.File);
+    private void RemoveImage() { if (Draft is not null) { Draft.ImageData = null; Draft.ImageContentType = null; } }
     private static string YesNo(bool? value) => value switch { true => "Да", false => "Нет", _ => "Не указано" };
     private static string Text(string? value) => string.IsNullOrWhiteSpace(value) ? "Не указано" : value;
     private string PaperFormats => Model?.PaperSizes is { Count: > 0 } sizes ? string.Join(", ", sizes.OrderBy(p => p.Name).Select(p => p.Name)) : "Не указано";
