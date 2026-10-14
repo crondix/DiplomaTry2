@@ -1,9 +1,102 @@
-﻿@page "/"
+@page "/"
+@rendermode RenderMode.InteractiveServer
+@using DiplomaTry2.Data
+@inject FirstRunAdminSetup SetupService
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Учёт печати</PageTitle>
 
-<h1>Hello, world!</h1>
+<section class="home-hero" aria-labelledby="home-title">
+    <div class="home-hero__content">
+        <p class="home-hero__eyebrow">Панель управления</p>
+        <h1 id="home-title">Учёт печати</h1>
 
-Welcome to your new app.
-<DiplomaTry2.Components.SuperAdmin.Test1/>
-<DiplomaTry2.Components.SuperAdmin.Test2/>
+        @if (!hasAdmin)
+        {
+            <p class="home-hero__description">Первый запуск: назначьте администратора из своей учётной записи Windows.</p>
+            <a class="home-hero__setup" href="Setup">Перейти к настройке</a>
+        }
+        else
+        {
+            <AuthorizeView Context="homeUser">
+                <Authorized>
+                    <p class="home-hero__description">Выберите раздел для работы с принтерами и событиями печати.</p>
+
+                    @if (notice is not null)
+                    {
+                        <p class="home-hero__notice" role="status">@notice</p>
+                    }
+
+                    <nav class="home-menu" aria-label="Разделы учёта печати">
+                        <button class="home-menu__item" type="button" @onclick='() => ShowNotice("Анализ загруженности пока не реализован.")'>
+                            <img src="images/menu/analysis.png" alt="" />
+                            <span>Анализ загруженности</span>
+                        </button>
+                        <a class="home-menu__item" href="NetworkPrintersList">
+                            <img src="images/menu/network_printers.png" alt="" />
+                            <span>Сетевые принтеры</span>
+                        </a>
+                        <a class="home-menu__item" href="PrinterNameVerification">
+                            <img src="images/menu/printer_models.png" alt="" />
+                            <span>Модели принтеров</span>
+                        </a>
+                        <AuthorizeView Roles="Admin" Context="eventsRole">
+                            <Authorized>
+                                <a class="home-menu__item" href="Events">
+                                    <img src="images/menu/print_events.png" alt="" />
+                                    <span>События сервера печати</span>
+                                </a>
+                            </Authorized>
+                            <NotAuthorized>
+                                <button class="home-menu__item" type="button" @onclick='() => ShowNotice("Для просмотра событий требуется роль администратора.")'>
+                                    <img src="images/menu/print_events.png" alt="" />
+                                    <span>События сервера печати</span>
+                                </button>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                        <button class="home-menu__item" type="button" @onclick='() => ShowNotice("Справка пока не реализована.")'>
+                            <img src="images/menu/help.png" alt="" />
+                            <span>Справка</span>
+                        </button>
+                        <a class="home-menu__item" href="settings">
+                            <img src="images/menu/settings.png" alt="" />
+                            <span>Настройки</span>
+                        </a>
+                        <button class="home-menu__item" type="button" @onclick='() => ShowNotice("Выход из Windows-сеанса через приложение пока не реализован.")'>
+                            <img src="images/menu/logout.png" alt="" />
+                            <span>Выход</span>
+                        </button>
+                        <AuthorizeView Roles="Admin" Context="testRole">
+                            <Authorized>
+                                <a class="home-menu__item" href="test-tools">
+                                    <img src="images/menu/settings.png" alt="" />
+                                    <span>Тестовые страницы</span>
+                                </a>
+                            </Authorized>
+                        </AuthorizeView>
+                    </nav>
+
+                    <AuthorizeView Roles="Admin" Context="importRole">
+                        <Authorized>
+                            <div class="home-hero__action">
+                                <span>Источник данных для импорта выбирается на странице загрузки.</span>
+                                <a href="netPrinters">Загрузить принтеры</a>
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+                </Authorized>
+                <NotAuthorized>
+                    <p class="home-hero__description">Для работы с данными печати требуется вход через учётную запись Windows.</p>
+                </NotAuthorized>
+            </AuthorizeView>
+        }
+    </div>
+</section>
+
+@code {
+    private bool hasAdmin;
+    private string? notice;
+
+    protected override async Task OnInitializedAsync() => hasAdmin = await SetupService.HasWindowsAdminAsync();
+
+    private void ShowNotice(string message) => notice = message;
+}

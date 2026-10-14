@@ -1,0 +1,24 @@
+@page "/"
+@namespace DiplomaTry2.GridChecks
+@using DiplomaTry2.Components.Tables
+<main style="width: 1000px; margin: 20px; color: white">
+    <button id="reload-data" @onclick="Reload">Обновить данные</button>
+    <button id="toggle-table" @onclick="() => visible = !visible">Показать / скрыть</button>
+    @if (visible)
+    {
+        <PersistentGrid TItem="CheckRow" TRow="CheckRow" TableKey="check-grid" Label="Проверка Grid"
+                        Columns="columns" Items="rows" RowSelector="Identity" />
+    }
+</main>
+@code {
+    private bool visible = true;
+    private readonly GridColumn[] columns = [new("Общее имя", "Name", 2), new("Страниц", "Pages"), new("Документ", "Document", 2),
+        new("Очередь", "Queue", 2, Visible: false)];
+    private CheckRow[] rows = CreateRows();
+    private static CheckRow[] CreateRows() => Enumerable.Range(1, 60)
+        .Select(index => new CheckRow($"Printer {index:00}", 61 - index,
+            index == 1 ? "<img src=x onerror=alert(1)>" : "Long document " + new string('x', index * 3))).ToArray();
+    private static CheckRow Identity(CheckRow row, int index) => row;
+    private void Reload() => rows = CreateRows();
+    public sealed record CheckRow(string Name, int Pages, string Document, string Queue = "Printer queue");
+}

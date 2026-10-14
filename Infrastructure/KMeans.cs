@@ -112,6 +112,17 @@ namespace Diploma.Application.Services
         {
             return AnalysisWithCustomCentroids(data, k, СentroidsInitializer(data, k), maxIterations, threshold);
         }
+
+        public int[] Analysis(double[,] data, int k, IKMeans<T>.CentroidInitializationFunc centroidsInitializer, int maxIterations = 100, double threshold = 1e-6)
+        {
+            return AnalysisWithCustomCentroids(data, k, centroidsInitializer(data, k), maxIterations, threshold);
+        }
+
+        public int[] Analysis(double[,] data, int k, double[,] centroids, int maxIterations = 100, double threshold = 1e-6)
+        {
+            return AnalysisWithCustomCentroids(data, k, centroids, maxIterations, threshold);
+        }
+
         int[] Analysis(double[,] data, int k, int maxIterations = 100, double threshold = 1e-6)
         {
             return AnalysisWithCustomCentroids(data, k, _InitCentroids(data, k), maxIterations, threshold);
@@ -129,14 +140,14 @@ namespace Diploma.Application.Services
         {
 
             // Количество объектов (строк) в переданном массиве данных
-            int numObjects = _data.GetLength(0);
+            int numObjects = data.GetLength(0);
             // Количество признаков (столбцов) у каждого объекта
-            int numFeatures = _data.GetLength(1);
+            int numFeatures = data.GetLength(1);
             int[] assignments = new int[numObjects];
             bool changed = true;
             int iterations = 0;
             double[,] centroids = startCentroids;
-            while (changed && iterations < _maxIterations)
+            while (changed && iterations < maxIterations)
             {
                 changed = false;
                 // Шаг 1: Назначение каждого объекта к ближайшему центроиду.
@@ -144,12 +155,12 @@ namespace Diploma.Application.Services
                 {
                     double minDist = double.MaxValue;
                     int bestCluster = 0;
-                    for (int cluster = 0; cluster < _k; cluster++)
+                    for (int cluster = 0; cluster < k; cluster++)
                     {
                         double dist = 0;
                         for (int j = 0; j < numFeatures; j++)
                         {
-                            double diff = _data[i, j] - centroids[cluster, j];
+                            double diff = data[i, j] - centroids[cluster, j];
                             dist += diff * diff;
                         }
                         // Используем квадрат расстояния (без извлечения квадратного корня)
@@ -175,7 +186,7 @@ namespace Diploma.Application.Services
                     counts[cluster]++;
                     for (int j = 0; j < numFeatures; j++)
                     {
-                        newCentroids[cluster, j] += _data[i, j];
+                        newCentroids[cluster, j] += data[i, j];
                     }
                 }
                 for (int cluster = 0; cluster < k; cluster++)
@@ -213,7 +224,7 @@ namespace Diploma.Application.Services
                 }
                 centroids = newCentroids;
                 iterations++;
-                if (maxChange < _threshold)
+                if (maxChange < threshold)
                     break;
             }
 

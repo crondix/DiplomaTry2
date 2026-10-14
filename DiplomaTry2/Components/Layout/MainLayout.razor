@@ -1,20 +1,13 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<main class="app-shell">
+    <nav class="app-shell__navigation" aria-label="Возврат к главному меню">
+        <NavLink class="app-shell__home" href="" Match="NavLinkMatch.All">← Главное меню</NavLink>
+    </nav>
+    <article class="app-shell__content">
+        @Body
+    </article>
+</main>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.

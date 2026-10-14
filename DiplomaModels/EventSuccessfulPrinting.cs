@@ -18,6 +18,11 @@ namespace DiplomaModels
         [Key]
         public int Id { get; set; }
 
+        // Null for events imported before source identities were recorded.
+        public string? SourceKey { get; set; }
+        public string? LogName { get; set; }
+        public long? RecordId { get; set; }
+
         /// <summary>
         /// Дата и время события.
         /// </summary>

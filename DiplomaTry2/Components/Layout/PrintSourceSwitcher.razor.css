@@ -1,0 +1,38 @@
+.source-panel {
+    width: 100%;
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 14px;
+    background: rgba(0, 0, 0, .55);
+    color: #f3f3f3;
+}
+
+.source-panel__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+}
+
+.source-panel label {
+    font-weight: 600;
+}
+
+.source-panel select {
+    min-width: 135px;
+    border-color: #777;
+    background-color: #282828;
+    color: #fff;
+}
+
+.source-panel__detail {
+    flex-basis: 100%;
+    color: #ddd;
+}
+
+.source-panel small {
+    display: block;
+    margin-top: .85rem;
+    color: #cfcfcf;
+}

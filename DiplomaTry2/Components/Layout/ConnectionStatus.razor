@@ -1,0 +1,99 @@
+@using DiplomaTry2.Data
+@using Microsoft.EntityFrameworkCore
+@implements IAsyncDisposable
+@inject RuntimeDatabase Database
+@inject PrintServerProbe PrintProbe
+
+<span class="connection-status" role="status" aria-live="polite"
+      aria-label="@(IsPrintServer ? "Состояние сервера печати" : "Состояние базы данных")"
+      title="@(IsPrintServer ? "Сетевая доступность активного сервера печати (RPC, TCP-порт 135)" : "Проверка подключения к активной базе данных")">
+    <span class="connection-status__dot @StatusClass(available)" aria-hidden="true"></span>
+    <span>@detail</span>
+</span>
+
+@code {
+    private readonly CancellationTokenSource lifetime = new();
+    private Task? refreshLoop;
+    [Parameter] public bool IsPrintServer { get; set; }
+    private bool? available;
+    private string detail = "Проверка…";
+
+    private static string StatusClass(bool? available) => available switch
+    {
+        true => "connection-status__dot--online",
+        false => "connection-status__dot--offline",
+        null => "connection-status__dot--pending"
+    };
+
+    // Start only in the interactive circuit, avoiding duplicate checks during prerendering.
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) refreshLoop = RefreshLoopAsync();
+        return Task.CompletedTask;
+    }
+
+    private async Task RefreshLoopAsync()
+    {
+        try
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+            do
+            {
+                await RefreshAsync();
+                await InvokeAsync(StateHasChanged);
+            } while (await timer.WaitForNextTickAsync(lifetime.Token));
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
+    }
+
+    private async Task RefreshAsync()
+    {
+        GlobalSnapshot snapshot;
+        try { snapshot = Database.Snapshot(); }
+        catch
+        {
+            available = false;
+            detail = "Настройки недоступны";
+            return;
+        }
+
+        available = IsPrintServer ? await CheckPrintServerAsync(snapshot) : await CheckDatabaseAsync(snapshot);
+        detail = IsPrintServer
+            ? string.IsNullOrWhiteSpace(snapshot.PrintServer) ? "Не настроен" : available == true ? "Доступен" : "Недоступен"
+            : string.IsNullOrWhiteSpace(snapshot.ConnectionString) ? "Не настроена" : available == true ? "Подключена" : "Нет подключения";
+    }
+
+    private async Task<bool> CheckDatabaseAsync(GlobalSnapshot snapshot)
+    {
+        if (string.IsNullOrWhiteSpace(snapshot.ConnectionString)) return false;
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        deadline.CancelAfter(TimeSpan.FromSeconds(5));
+        try
+        {
+            await using var db = await Database.Capture(snapshot).CreateDbContextAsync(deadline.Token);
+            return await db.Database.CanConnectAsync(deadline.Token);
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { throw; }
+        catch { return false; }
+    }
+
+    private async Task<bool> CheckPrintServerAsync(GlobalSnapshot snapshot)
+    {
+        if (string.IsNullOrWhiteSpace(snapshot.PrintServer)) return false;
+        try
+        {
+            var result = await PrintProbe.CheckAsync(snapshot.PrintServer, lifetime.Token);
+            // ICMP may be blocked even when RPC is reachable.
+            return result.Dns.Success && result.Rpc.Success;
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { throw; }
+        catch { return false; }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await lifetime.CancelAsync();
+        if (refreshLoop is not null) await refreshLoop;
+        lifetime.Dispose();
+    }
+}

@@ -1,0 +1,18 @@
+@page "/test-tools"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@using DiplomaTry2.Components.Layout
+
+<PageTitle>Тестовые страницы</PageTitle>
+
+<section class="test-tools" aria-labelledby="test-tools-title">
+    <p class="test-tools__eyebrow">Разработка и проверка</p>
+    <h1 id="test-tools-title">Тестовые страницы</h1>
+    <p>Здесь собраны временные инструменты. Выбор источника действует для текущей вкладки браузера.</p>
+
+    <PrintSourceSwitcher />
+
+    <div class="test-tools__links">
+        <a href="TestS">Проверка моделей принтеров</a>
+        <a href="js">Проверка хранения данных в браузере</a>
+    </div>
+</section>

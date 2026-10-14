@@ -1,5 +1,6 @@
 ﻿using DiplomaModels;
 using DiplomaTry2.Data;
+using DiplomaTry2.InterFaces;
 using DiplomaTry2.Services;
 
 using Microsoft.AspNetCore.Components;
@@ -7,31 +8,51 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DiplomaTry2.Components.Pages
 {
-    public partial class PrintersList
+    public partial class PrintersList : IDisposable
     {
         [Inject]
-        PrintServerService printserver { get; set; }
+        IPrinterSource printserver { get; set; } = default!;
         [Inject]
-        NetPrintersService nps { get; set; }
-        [Inject]
-        IConfiguration AppConfig { get; set; }
-        [Inject]
-        private IDbContextFactory<ApplicationDbContext> _contextFactory { get; set; }
+        PrintSourceSelection SourceSelection { get; set; } = default!;
+        [Inject] private ILogger<PrintersList> Logger { get; set; } = default!;
 
-        NetworkPrinter printer { get; set; }
         List<NetworkPrinter>? printers { get; set; }
-        string message { get; set; }
+        string message { get; set; } = "";
         bool Loading = false;
 
-        class Error
+        protected override void OnInitialized() => SourceSelection.Changed += SourceChanged;
+
+        private void SourceChanged()
         {
-            public string Details { get; set; } = "";
+            printers = null;
+            message = "";
+            _ = InvokeAsync(StateHasChanged);
         }
+
+        public void Dispose() => SourceSelection.Changed -= SourceChanged;
+
         async Task LoadingData()
         {
+            if (Loading) return;
             Loading = true;
-            printers = service.GetListNetPrintersInfoFromPrintServer(@$"{AppConfig["printserver:name"].ToString()}");
-
+            message = "";
+            var revision = SourceSelection.Revision;
+            try
+            {
+                var result = await printserver.GetPrintersAsync();
+                if (revision == SourceSelection.Revision)
+                    printers = result.ToList();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Не удалось загрузить список принтеров с сервера печати.");
+                if (revision == SourceSelection.Revision)
+                    message = $"Не удалось получить принтеры: {ex.Message}";
+            }
+            finally
+            {
+                Loading = false;
+            }
         }
     }
 }

@@ -17,7 +17,7 @@ namespace DiplomaTry2.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -66,6 +66,17 @@ namespace DiplomaTry2.Migrations
                     b.Property<DateTime?>("DateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("LogName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long?>("RecordId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SourceKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int?>("SenderDeviceId")
                         .HasColumnType("int");
 
@@ -88,7 +99,32 @@ namespace DiplomaTry2.Migrations
 
                     b.HasIndex("TargetPrinterId");
 
+                    b.HasIndex("SourceKey", "LogName", "RecordId", "DateTime")
+                        .IsUnique()
+                        .HasFilter("[RecordId] IS NOT NULL");
+
                     b.ToTable("EventsSuccessfulPrinting");
+                });
+
+            modelBuilder.Entity("DiplomaTry2.Data.PrintEventImportCursor", b =>
+                {
+                    b.Property<string>("SourceKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("LogName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("EventTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("RecordId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("SourceKey", "LogName");
+
+                    b.ToTable("PrintEventImportCursors");
                 });
 
             modelBuilder.Entity("DiplomaModels.NetworkPrinter", b =>
@@ -101,20 +137,22 @@ namespace DiplomaTry2.Migrations
 
                     b.Property<string>("Comment")
                         .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "comment");
+                        .HasJsonPropertyName("comment");
+
+                    b.Property<string>("DriverName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Ip")
                         .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "ip");
+                        .HasJsonPropertyName("ip");
 
                     b.Property<bool>("IsOnline")
                         .HasColumnType("bit")
-                        .HasAnnotation("Relational:JsonPropertyName", "isOnline");
+                        .HasJsonPropertyName("isOnline");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "Name");
+                        .HasJsonPropertyName("Name");
 
                     b.Property<string>("NonIPAddress")
                         .HasColumnType("nvarchar(max)");
@@ -122,14 +160,26 @@ namespace DiplomaTry2.Migrations
                     b.Property<int?>("PrinterModelId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ShareName")
+                    b.Property<string>("QueueKey")
                         .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ShareName")
                         .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "ShareName");
+                        .HasJsonPropertyName("ShareName");
+
+                    b.Property<string>("SourceKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PrinterModelId");
+
+                    b.HasIndex("SourceKey", "QueueKey")
+                        .IsUnique();
 
                     b.ToTable("NetworkPrinters");
                 });
@@ -186,7 +236,7 @@ namespace DiplomaTry2.Migrations
                     b.Property<string>("ModelName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "modelName");
+                        .HasJsonPropertyName("modelName");
 
                     b.Property<string>("NormalizedModelName")
                         .IsRequired()

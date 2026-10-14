@@ -1,191 +1,90 @@
-﻿@page "/Events"
+@page "/Events"
 @rendermode RenderMode.InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@using DiplomaTry2.Components.Layout
 
-<h3>
-    Printer Name Verification @if (IsAdditionSuccessful is not null)
-    {
-        <span class="@(IsAdditionSuccessful??false?"bg-success":"bg-warning")">
-            @(IsAdditionSuccessful ?? false ? "Актуализация выполнена успешно" : $" Произошла ошибка: {AdditionErrorMessage}")
-        </span>
-    }
-</h3>
-<div class="row">
-    <div class="col-12 d-flex justify-content-end">
-        <button class="btn btn-primary m-sm-1" @onclick="LoadData">Запросить данные из базы данных</button>
-        <button class="btn btn-primary m-sm-1" @onclick="Actualization">Актуализировать данные из журнала</button>
-    </div>
+<PageTitle>События сервера печати</PageTitle>
 
-    <div class="col-12">
-        <div class="position-relative">
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>
-                            DataTime
-                        </th>
-                        <th>
-                            Sender Name
-                        </th>
-                        <th>
-                            Device Name
-                        </th>
-                        <th>
-                            Printer Name
-                        </th>
-                        <th>
-                            Document Name
-                        </th>
-                        <th>
-                            Document Page
-                        </th>
-                        <th>
-                            Document Size (bytes)
-                        </th>
-                    </tr>
-                </thead>
-                @if (EventsSuccessfulPrinting is not null)
-                {
-                    <tbody>
-                        @foreach (var sEvent in EventsSuccessfulPrinting)
-                        {
-                            <tr>
-                                <td class="align-content-center">
-                                    @(sEvent.DateTime.ToString() ?? "null")
-                                </td>
-                                <td class="align-content-center">
-                                    @(sEvent.Sender?.Name ?? "null")
-                                </td>
-                                <td class="align-content-center">
-                                    @(sEvent.SenderDevice?.NameNormalized ?? "null")
-                                </td>
-                                <td class="align-content-center">
-                                    @(sEvent.TargetPrinter?.NetworkPrinter?.Name
-                                    ?? 
-                                    sEvent.TargetPrinter?.Name
-                                    ?? 
-                                    "null")
-                                </td>
-                                <td class="align-content-center">
-                                    @(sEvent.SentPrintingFile?.Name.name ?? " null")
-                                </td> 
-                                <td class="align-content-center">
-                                    @(sEvent.SentPrintingFile?.Pages.ToString() ?? " null")
-                                </td>
-                                <td class="align-content-center">
-                                    @(sEvent.SentPrintingFile?.Size.ToString() ?? " null")
-                                </td>
+<section class="events-page" aria-labelledby="events-title">
+    <nav class="events-page__rail" aria-label="Действия страницы событий">
+        <a class="events-page__tile" href="/">
+            <img src="images/events/arrow.png" alt="" />
+            <span>Главное меню</span>
+        </a>
+        <button class="events-page__tile" type="button" @onclick='() => ShowNavigationNotice("Справка пока не реализована.")'>
+            <img src="images/events/help.png" alt="" />
+            <span>Справка</span>
+        </button>
+        <button class="events-page__tile" type="button" @onclick='() => ShowNavigationNotice("Настройки пока не реализованы.")'>
+            <img src="images/events/settings.png" alt="" />
+            <span>Настройки</span>
+        </button>
+    </nav>
 
-
-                            </tr>
-                        }
-                    </tbody>
-                }
-                else if (!Loading)
-                {
-                    <tbody>
-                        <tr>
-                            <td colspan="7">
-                                <div class="w-100 d-flex justify-content-center p-8">
-                                    <button class="btn btn-primary" @onclick="LoadData">Get Data</button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                }
-                else
-                {
-
-                    <tbody>
-
-                        <tr>
-                            <td class="align-content-center  placeholder-glow">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                            <td class="align-content-center placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="align-content-center  placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                            <td class="align-content-center  placeholder-glow">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="align-content-center  placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                            <td class="align-content-center placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="align-content-center  placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                            <td class="align-content-center placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="align-content-center  placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                            <td class="align-content-center placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="align-content-center  placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                            <td class="align-content-center placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="align-content-center  placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                            <td class="align-content-center placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="align-content-center  placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                            <td class="align-content-center placeholder-glow ">
-                                <span class="placeholder col-6"></span>
-                            </td>
-                        </tr>
-                    </tbody>
-
-                }
-
-            </table>
-            @if (Adding)
-            {
-               
-                <div class="position-absolute top-0 bottom-0 start-0 end-0 mt-0  d-flex justify-content-center align-content-center">
-                    <div class="text-white w-100 justify-content-center h1 d-flex m-0 p-1" style="background-color:color-mix(in srgb, grey 80%, transparent)">
-                        @if (_procent==0)
-                        {
-                            <span>Getting events</span>
-                        }
-                        else
-                        {
-                            <span>  Completed: @(_procent)%  (@(_currentItem) items out of @(_totalyItem) items)</span>
-                        }
-                      
-                        </div>
-                </div>
-            }
+    <div class="events-page__main">
+        <div class="events-page__heading">
+            <h1 id="events-title">События сервера печати</h1>
+            <p>Последние 50 сохранённых событий. Импорт читает выбранный источник.</p>
         </div>
 
+        <PrintSourceSwitcher />
+
+        <div class="events-page__actions">
+            <button class="btn btn-outline-primary" @onclick="LoadData" disabled="@(Loading || Adding)">@(Loading ? "Чтение…" : "Обновить таблицу")</button>
+            <button class="btn btn-primary" @onclick="Actualization" disabled="@(Loading || Adding)">@(Adding ? "Импорт…" : "Импортировать события")</button>
+        </div>
+
+        @if (NavigationNotice is not null)
+        {
+            <p class="events-page__notice" role="status">@NavigationNotice</p>
+        }
+        @if (Adding)
+        {
+            <p role="status">Импорт выполняется. Обработано: @_currentItem.</p>
+        }
+        @if (ImportSummary is not null)
+        {
+            <p class="alert alert-success" role="status">@ImportSummary</p>
+        }
+        @if (AdditionErrorMessage is not null)
+        {
+            <p class="alert alert-danger" role="alert">@AdditionErrorMessage</p>
+        }
+
+        @if (Loading)
+        {
+            <p role="status">Чтение сохранённых событий…</p>
+        }
+        else if (EventsSuccessfulPrinting.Count == 0)
+        {
+            <p class="events-page__empty">Сохранённых событий пока нет.</p>
+        }
+        @if (EventsSuccessfulPrinting.Count > 0)
+        {
+            <div class="events-page__table-wrap">
+                <PersistentGrid TableKey="print-events" Label="События сервера печати"
+                                Items="EventsSuccessfulPrinting" Columns="EventColumns" RowSelector="EventRow" />
+            </div>
+        }
     </div>
 
+    <aside class="events-page__rail events-page__rail--right" aria-label="Дополнительные действия">
+        <button class="events-page__tile" type="button" @onclick='() => ShowNavigationNotice("Анализ загруженности пока не реализован.")'>
+            <img src="images/events/analysis.png" alt="" />
+            <span>Перейти к анализу</span>
+        </button>
+    </aside>
+</section>
 
-</div>
+@code {
+    private static readonly GridColumn[] EventColumns = [
+        new("Время", "Time", DisplayFormat: "dd.MM.yyyy HH:mm:ss"), new("Отправитель", "Sender"), new("Компьютер", "Computer"),
+        new("Принтер", "Printer", WidthGrow: 2), new("Документ", "Document", WidthGrow: 2),
+        new("Страниц", "Pages"), new("Байт", "Size")
+    ];
+
+    private static EventGridRow EventRow(DiplomaModels.EventSuccessfulPrinting item, int index) =>
+        new(item.DateTime, item.Sender?.Name ?? "—", item.SenderDevice?.NameNormalized ?? "—",
+            item.TargetPrinter?.NetworkPrinter?.Name ?? item.TargetPrinter?.Name ?? "—",
+            item.SentPrintingFile?.Name?.name ?? "—", item.SentPrintingFile?.Pages, item.SentPrintingFile?.Size);
+}

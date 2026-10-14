@@ -1,0 +1,84 @@
+@namespace DiplomaTry2.Components.Pages
+@using Microsoft.Extensions.Logging
+@inject ApplicationLogService Logs
+
+<section class="settings-panel logs-panel" aria-label="Журнал приложения">
+    <div class="logs-heading">
+        <div><h3>Журнал приложения</h3><p>Запуск, изменения настроек, импорт и ошибки приложения.</p></div>
+        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="RefreshAsync" disabled="@loading">@(loading ? "Загрузка…" : "Обновить")</button>
+    </div>
+    @if (error is not null) { <p class="logs-warning" role="alert">@error</p> }
+    @if (snapshot is not null) {
+        @if (snapshot.StorageError is not null) { <p class="logs-warning" role="alert">@snapshot.StorageError</p> }
+        <div class="logs-filters">
+            <label for="log-level">Уровень
+                <select id="log-level" @bind="minimumLevel">
+                    <option value="@LogLevel.Trace">Все уровни</option>
+                    <option value="@LogLevel.Information">Информация и выше</option>
+                    <option value="@LogLevel.Warning">Предупреждения и ошибки</option>
+                    <option value="@LogLevel.Error">Только ошибки</option>
+                </select>
+            </label>
+            <label for="log-period">Период
+                <select id="log-period" @bind="periodHours">
+                    <option value="0">Все доступные записи</option>
+                    <option value="1">Последний час</option>
+                    <option value="24">Последние сутки</option>
+                    <option value="168">Последняя неделя</option>
+                </select>
+            </label>
+            <span class="logs-updated" role="status">Загружено: @snapshot.Entries.Count · @refreshedAt.ToString("HH:mm:ss")</span>
+        </div>
+        <div class="logs-grid-wrap">
+            <DxGrid Data="VisibleEntries" KeyFieldName="Id" ShowSearchBox="true" SearchBoxNullText="Поиск по журналу…"
+                    ShowFilterRow="true" PageSize="25" PageSizeSelectorVisible="true" PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                    TextWrapEnabled="true" AutoCollapseDetailRow="true" ColumnResizeMode="GridColumnResizeMode.NextColumn">
+                <Columns>
+                    <DxGridDataColumn FieldName="LocalTime" Caption="Время" DisplayFormat="dd.MM.yyyy HH:mm:ss" Width="180px" SortIndex="0" SortOrder="GridColumnSortOrder.Descending" />
+                    <DxGridDataColumn FieldName="LevelName" Caption="Уровень" Width="165px">
+                        <CellDisplayTemplate>
+                            @{ var entry = (ApplicationLogEntry)context.DataItem; }
+                            <span class="log-level log-level--@entry.Level.ToString().ToLowerInvariant()">@entry.LevelName</span>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                    <DxGridDataColumn FieldName="Category" Caption="Источник" Width="240px" />
+                    <DxGridDataColumn FieldName="Message" Caption="Сообщение" MinWidth="250" />
+                </Columns>
+                <DetailRowTemplate>
+                    @{ var entry = (ApplicationLogEntry)context.DataItem; }
+                    <div class="log-details"><p><strong>@entry.Category</strong> · Код события: @entry.EventId</p><pre>@entry.Message</pre>
+                        @if (!string.IsNullOrEmpty(entry.Exception)) { <h4>Подробности ошибки</h4><pre>@entry.Exception</pre> }
+                    </div>
+                </DetailRowTemplate>
+                <EmptyDataAreaTemplate><p class="logs-empty">Записей нет. Измените фильтры или обновите журнал после выполнения операции.</p></EmptyDataAreaTemplate>
+            </DxGrid>
+        </div>
+        <p class="logs-footnote">Показаны последние @ApplicationLogStore.EntryLimit записей. Время — часовой пояс сервера (@TimeZoneInfo.Local.DisplayName). Для подробностей раскройте строку.</p>
+        <details class="logs-storage"><summary>Хранение журнала</summary><p>Каталог: <code>@snapshot.DirectoryPath</code></p><p>До @ApplicationLogStore.FileLimit файлов по @(ApplicationLogStore.FileSizeLimit / 1024 / 1024) МБ. Старые файлы удаляются автоматически; записи сохраняются между перезапусками.</p></details>
+    }
+</section>
+
+@code {
+    private ApplicationLogSnapshot? snapshot;
+    private LogLevel minimumLevel = LogLevel.Trace;
+    private int periodHours;
+    private bool loading;
+    private string? error;
+    private DateTime refreshedAt;
+    private ApplicationLogEntry[] VisibleEntries => snapshot?.Entries
+        .Where(entry => entry.Level >= minimumLevel && (periodHours == 0 || entry.Timestamp >= DateTimeOffset.UtcNow.AddHours(-periodHours)))
+        .ToArray() ?? [];
+
+    protected override Task OnInitializedAsync() => RefreshAsync();
+
+    private async Task RefreshAsync()
+    {
+        if (loading) return;
+        loading = true;
+        error = null;
+        try { snapshot = await Logs.ReadAsync(); refreshedAt = DateTime.Now; }
+        catch (UnauthorizedAccessException) { snapshot = null; error = "Просмотр логов доступен только администратору приложения."; }
+        catch { snapshot = null; error = "Не удалось загрузить журнал приложения. Попробуйте обновить его."; }
+        finally { loading = false; }
+    }
+}

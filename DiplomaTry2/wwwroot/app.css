@@ -49,3 +49,191 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+/* Shared appearance for working pages, based on the dark HTML mockups. */
+body {
+    background: #262626;
+}
+
+.app-shell__content h1,
+.app-shell__content h3 {
+    margin-bottom: 1rem;
+    color: #fff;
+    font-weight: 700;
+}
+
+.app-shell__content h3 {
+    font-size: clamp(1.6rem, 2.5vw, 2.25rem);
+}
+
+.app-shell__content p {
+    color: #e3e3e3;
+}
+
+.app-shell__content a:not(.home-menu__item, .home-hero__setup, .app-shell__home) {
+    color: #fff;
+}
+
+.app-shell__content a:not(.home-menu__item, .home-hero__setup, .app-shell__home):hover {
+    color: #d6d6d6;
+}
+
+.app-shell__content .btn-primary,
+.app-shell__content .btn-outline-primary {
+    border-color: rgba(255, 255, 255, .75);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .48);
+    color: #fff;
+}
+
+.app-shell__content .btn-primary:hover,
+.app-shell__content .btn-outline-primary:hover {
+    border-color: #fff;
+    background: #fff;
+    color: #222;
+}
+
+.app-shell__content .btn:focus-visible,
+.app-shell__content a:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+
+.app-shell__content .alert {
+    border: 1px solid rgba(255, 255, 255, .3);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, .6);
+    color: #fff;
+}
+
+.app-shell__content .alert-danger {
+    border-color: #e39595;
+}
+
+.app-shell__content .alert-success {
+    border-color: #96d0ac;
+}
+
+.app-shell__content .table {
+    --bs-table-bg: #202020;
+    --bs-table-color: #f2f2f2;
+    --bs-table-border-color: #555;
+    --bs-table-striped-bg: #2f2f2f;
+    --bs-table-striped-color: #fff;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid rgba(255, 255, 255, .3);
+    border-radius: 12px;
+}
+
+.app-shell__content .table th,
+.app-shell__content .table td {
+    padding: .8rem 1rem;
+    vertical-align: middle;
+    color: #f2f2f2;
+}
+
+.app-shell__content .table thead th {
+    font-weight: 700;
+}
+
+body:has(.events-page, .print-data-frame) .app-shell__navigation {
+    display: none;
+}
+
+.app-shell__content {
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.app-shell__content table.table.table--resizable {
+    display: table;
+    table-layout: fixed;
+    max-width: none;
+    overflow: visible;
+}
+
+.app-shell__content .table--resizable th,
+.app-shell__content .table--resizable td {
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.app-shell__content .table--resizable td.text-nowrap {
+    white-space: normal !important;
+}
+
+.app-shell__content .table--resizable thead th {
+    position: relative;
+    padding-right: 1rem;
+}
+
+.table-column-resize {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    width: 9px;
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+}
+
+.table-column-resize:hover,
+.table-column-resize:focus-visible {
+    background: rgba(255, 255, 255, .35);
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+}
+
+body.table-column-resizing,
+body.table-column-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+.print-grid {
+    min-width: 0;
+    padding: .5rem;
+}
+
+.print-grid__actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: .5rem;
+}
+
+.print-grid__data {
+    width: 100%;
+}
+
+.print-grid__data [data-grid-field] {
+    overflow-wrap: anywhere;
+}
+
+.print-grid__notice {
+    margin: .5rem 0 0;
+    font-size: .9rem;
+}
+
+.print-grid--resize-hover tbody [data-grid-field],
+body.print-grid--resizing,
+body.print-grid--resizing * {
+    cursor: col-resize !important;
+}
+
+body.print-grid--resizing * {
+    user-select: none !important;
+}
+
+.print-grid__resize-guide {
+    position: fixed;
+    width: 2px;
+    background: #91caff;
+    z-index: 10000;
+    pointer-events: none;
+}

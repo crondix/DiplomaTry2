@@ -4,164 +4,175 @@ using DiplomaTry2.Client.Pages;
 using DiplomaTry2.Components;
 using DiplomaTry2.Components.Account;
 using DiplomaTry2.Data;
-
-
-
-
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
-using DiplomaTry2.Components.Pages;
 using System.Net.Http;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.AspNetCore.Components;
+using System.IO;
+using DevExpress.Blazor;
+using Microsoft.AspNetCore.DataProtection;
 namespace DiplomaTry2
 {
     public class Program
     {
         public static async Task Main(string[] args)
         {
+            try
+            {
+                await RunAsync(args);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РїСѓСЃС‚РёС‚СЊ DiplomaTry2: {ex.GetBaseException().Message}");
+                Environment.ExitCode = 1;
+            }
+        }
+
+        private static async Task RunAsync(string[] args)
+        {
             var builder = WebApplication.CreateBuilder(args);
-           
+            builder.WebHost.UseStaticWebAssets();
+            // A restricted interactive account cannot write to the Windows Event Log.
+            // Keep startup failures visible in the console instead of masking them with a logging exception.
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.AddDebug();
+            var logPath = builder.Configuration["ApplicationLogs:Directory"] ?? "%ProgramData%/DiplomaTry2/logs";
+            builder.Services.AddSingleton(_ => new ApplicationLogStore(logPath));
+            builder.Services.AddSingleton<ILoggerProvider>(sp => sp.GetRequiredService<ApplicationLogStore>());
+            builder.Services.AddScoped<ApplicationLogService>();
+
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddInteractiveWebAssemblyComponents();
+            builder.Services.AddDevExpressBlazor();
 
             builder.Services.AddCascadingAuthenticationState();
-            builder.Services.AddScoped<IdentityUserAccessor>();
-            builder.Services.AddScoped<IdentityRedirectManager>();
-     
-            builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
-           
-          
-
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = IdentityConstants.ApplicationScheme;
-                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-            })
-            .AddIdentityCookies();
+            builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
+            builder.Services.AddScoped<IClaimsTransformation, WindowsRoleClaimsTransformation>();
             builder.Services.AddAuthorization(options =>
             {
+                options.FallbackPolicy = options.DefaultPolicy;
                 options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
             });
 
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-            builder.Services.AddDbContextFactory<ApplicationDbContext>(options => {
-                options.EnableSensitiveDataLogging();
-                options.UseSqlServer(
-                    connectionString, sqlServerOptions =>
-                    sqlServerOptions.EnableRetryOnFailure()
-                );}
-            );
+            var servicePath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(builder.Configuration["ServiceDatabase:Path"] ?? "%ProgramData%/DiplomaTry2/service.sqlite"));
+            builder.Services.AddDataProtection().SetApplicationName("DiplomaTry2")
+                .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Path.GetDirectoryName(servicePath)!, "keys")))
+                .ProtectKeysWithDpapi();
+            builder.Services.AddSingleton<ServiceStore>();
+            builder.Services.AddSingleton<RuntimeDatabase>();
+            builder.Services.AddSingleton<IDbContextFactory<ApplicationDbContext>>(sp => sp.GetRequiredService<RuntimeDatabase>());
+            builder.Services.AddScoped(sp => sp.GetRequiredService<RuntimeDatabase>().CreateDbContext());
+            builder.Services.AddSingleton<LegacyRoleMigration>();
+            builder.Services.AddHostedService(sp => sp.GetRequiredService<LegacyRoleMigration>());
+            builder.Services.AddScoped<ApplicationSettingsService>();
+            builder.Services.AddSingleton<IMainDatabaseValidator, MainDatabaseValidator>();
+            builder.Services.AddSingleton<IPrintServerNetworkProbe, PrintServerNetworkProbe>();
+            builder.Services.AddSingleton(sp => new PrintServerProbe(sp.GetRequiredService<IPrintServerNetworkProbe>()));
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-            builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddSignInManager()
-                .AddDefaultTokenProviders();
-
-            builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+            builder.Services.AddScoped<FirstRunAdminSetup>();
 
 
-            
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress =  new Uri("https://localhost:7197/") });
-     
-            builder.Services.AddScoped<PrintServerService>();
-            builder.Services.AddScoped<EventLogService>();
+
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7197/") });
+
+            var printSourceSettings = PrintSourceSettings.FromConfiguration(builder.Configuration);
+            builder.Services.AddSingleton(printSourceSettings);
+            builder.Services.AddScoped<PrintSourceSelection>();
+            builder.Services.AddScoped<PrintSourcePreferences>();
+            builder.Services.AddScoped<FixturePrintSource>();
+            builder.Services.AddScoped<WindowsPrinterSource>();
+            builder.Services.AddScoped<WindowsPrintEventSource>();
+            builder.Services.AddScoped<IPrinterSource, SelectedPrinterSource>();
+            builder.Services.AddScoped<IPrintEventSource, SelectedPrintEventSource>();
             builder.Services.AddScoped<EventLogProcessingService>();
             builder.Services.AddScoped<NetPrintersService>();
-            builder.Services.AddScoped<ComparisonService>();
-           
-           
-
-            
+            builder.Services.AddScoped<PrinterModelService>();
 
 
-            var app = builder.Build();
-           
-            // Apply migrations at startup
-            //using (var scope = app.Services.CreateScope())
-            //{
-            //    var services = scope.ServiceProvider;
-            //    var dbContext = services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext();
-            //    dbContext.Database.Migrate();
 
-            //    //var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-            //    //await SeedData.Initialize(services, userManager);
-            //}
-            using (var scope = app.Services.CreateScope())
+
+
+
+            await using var app = builder.Build();
+            try
             {
-                var services = scope.ServiceProvider;
-                var dbContext = services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext();
+                app.Lifetime.ApplicationStarted.Register(() => app.Logger.LogInformation("РџСЂРёР»РѕР¶РµРЅРёРµ Р·Р°РїСѓС‰РµРЅРѕ. РЎСЂРµРґР°: {Environment}.", app.Environment.EnvironmentName));
+                app.Lifetime.ApplicationStopping.Register(() => app.Logger.LogInformation("РџСЂРёР»РѕР¶РµРЅРёРµ РѕСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ."));
 
-                // Проверка, существует ли база данных
-                if (dbContext.Database.CanConnect())
+                // Main database availability must never prevent Windows authentication or settings.
+                app.Services.GetRequiredService<ServiceStore>();
+                if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase))
                 {
-                    var migrator = dbContext.GetService<IMigrator>();
-                    var pendingMigrations = dbContext.Database.GetPendingMigrations();
-
-                    // Применение миграций только если есть неприеменные миграции
-                    if (pendingMigrations.Any())
-                    {
-                        dbContext.Database.Migrate();
-                    }
+                    await DatabaseStartup.CheckOrMigrateAsync(app.Services, builder.Configuration, args);
+                    return;
                 }
 
-                //var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-                //await SeedData.Initialize(services, userManager);
+                // Configure the HTTP request pipeline.
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseWebAssemblyDebugging();
+                    app.UseMigrationsEndPoint();
+                }
+                else
+                {
+                    app.UseExceptionHandler("/Error");
+                    app.UseHsts();
+                }
+
+                app.UseHttpsRedirection();
+                app.UseStaticFiles();
+                app.UseRouting();
+                app.UseAuthentication();
+                app.UseAuthorization();
+                app.UseAntiforgery();
+
+                // Legacy password and cookie pages are retained as source but are not routes in Windows mode.
+                app.Use(async (context, next) =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/Account", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status404NotFound;
+                        return;
+                    }
+                    await next();
+                });
+
+                app.MapStaticAssets();
+
+                app.MapRazorComponents<App>()
+                    .AddInteractiveServerRenderMode()
+                    .AddInteractiveWebAssemblyRenderMode()
+                    .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
+
+                app.MapPost("/Setup/claim", async (HttpContext context, FirstRunAdminSetup setup, IAntiforgery antiforgery) =>
+                {
+                    if (!FirstRunAdminSetup.IsLocalRequest(context)) return (IResult)Results.Forbid();
+                    var account = FirstRunAdminSetup.WindowsAccount(context.User);
+                    if (account is null) return Results.Forbid();
+                    try { await antiforgery.ValidateRequestAsync(context); }
+                    catch (AntiforgeryValidationException) { return Results.BadRequest("Invalid setup form token."); }
+                    try {
+                        return await setup.ClaimAsync(account.Value.Sid, account.Value.Name)
+                            ? Results.Redirect("/settings") : Results.Conflict("РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ СѓР¶Рµ РЅР°Р·РЅР°С‡РµРЅ.");
+                    }
+                    catch (InvalidOperationException ex) { return Results.Conflict(ex.Message); }
+                }).RequireAuthorization();
+
+
+
+                app.Run();
             }
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            catch (Exception ex)
             {
-                app.UseWebAssemblyDebugging();
-                app.UseMigrationsEndPoint();
+                app.Logger.LogCritical(ex, "РџСЂРёР»РѕР¶РµРЅРёРµ Р·Р°РІРµСЂС€РёР»РѕСЃСЊ СЃ РѕС€РёР±РєРѕР№.");
+                throw;
             }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseAntiforgery();
-
-            app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode()
-                .AddInteractiveWebAssemblyRenderMode()
-                .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
-
-            // Add additional endpoints required by the Identity /Account Razor components.
-            app.MapAdditionalIdentityEndpoints();
-
-
-
-            //app.MapGet("/printerList", () =>
-            //{
-            //    PrintServerService printServerService = new PrintServerService();
-            //    return Results.Json(printServerService.GetListNetPrintersInfoFromPrintServer(@$"{app.Configuration["printserver:name"].ToString()}"));
-            //});
-
-            //app.MapGet("/printerModelsList", () =>
-            //{
-            //    PrintServerService printServerService = new PrintServerService();
-            //    return Results.Json(printServerService.GetPrintersModelsList(@$"{app.Configuration["printserver:name"].ToString()}"));
-            //});
-
-
-
-
-            app.Run();
         }
     }
 }

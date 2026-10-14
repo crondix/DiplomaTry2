@@ -13,7 +13,7 @@ namespace DiplomaTry2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250203100601_InitialCreate")]
-    partial class InitialCreate
+    partial class InitialCreate2025
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

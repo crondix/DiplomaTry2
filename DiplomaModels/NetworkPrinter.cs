@@ -28,7 +28,12 @@ namespace DiplomaModels
         [JsonIgnore]
         public int Id { get; set; }
         [JsonIgnore]
+        public string SourceKey { get; set; } = "legacy";
+        [JsonIgnore]
+        public string QueueKey { get; set; } = "";
+        [JsonIgnore]
         public int? PrinterModelId { get; set; } // Внешний ключ
+        public string? DriverName { get; set; }
         ///// <summary>
         ///// Объект модели принтера
         ///// </summary>

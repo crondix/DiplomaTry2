@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DevExpress.Blazor" Version="26.1.4" />
+    <Compile Include="../DiplomaTry2/Components/Tables/GridColumn.cs" Link="Components/Tables/GridColumn.cs" />
+    <Compile Include="../DiplomaTry2/Components/Tables/GridLayoutPolicy.cs" Link="Components/Tables/GridLayoutPolicy.cs" />
+    <Content Include="../DiplomaTry2/Components/Tables/PersistentGrid.razor" Link="Components/Tables/PersistentGrid.razor" />
+  </ItemGroup>
+</Project>

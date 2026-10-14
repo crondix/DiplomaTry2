@@ -1,0 +1,52 @@
+<section class="print-data-frame" aria-label="@Title">
+    <nav class="print-data-frame__rail" aria-label="Действия страницы">
+        <a class="print-data-frame__tile" href="/">
+            <img src="images/printers/arrow.png" alt="" />
+            <span>Главное меню</span>
+        </a>
+        <button class="print-data-frame__tile" type="button" @onclick='() => ShowNotice("Справка пока не реализована.")'>
+            <img src="images/printers/help.png" alt="" />
+            <span>Справка</span>
+        </button>
+        <button class="print-data-frame__tile" type="button" @onclick='() => ShowNotice("Настройки пока не реализованы.")'>
+            <img src="images/printers/settings.png" alt="" />
+            <span>Настройки</span>
+        </button>
+    </nav>
+
+    <div class="print-data-frame__main">
+        <div class="print-data-frame__heading">
+            <h1>@Title</h1>
+            <p>@Description</p>
+        </div>
+        @if (notice is not null)
+        {
+            <p class="print-data-frame__notice" role="status">@notice</p>
+        }
+        @ChildContent
+    </div>
+
+    <aside class="print-data-frame__rail print-data-frame__rail--right" aria-label="Дополнительные действия">
+        <button class="print-data-frame__tile" type="button" @onclick='() => ShowNotice("Анализ загруженности пока не реализован.")'>
+            <img src="images/printers/analysis.png" alt="" />
+            <span>Перейти к анализу</span>
+        </button>
+        @if (ShowEditAction)
+        {
+            <button class="print-data-frame__tile" type="button" @onclick='() => ShowNotice("Редактирование пока не реализовано.")'>
+                <img src="images/printers/edit.png" alt="" />
+                <span>Редактирование</span>
+            </button>
+        }
+    </aside>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public bool ShowEditAction { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? notice;
+    private void ShowNotice(string message) => notice = message;
+}

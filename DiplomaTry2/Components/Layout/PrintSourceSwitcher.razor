@@ -1,0 +1,72 @@
+@rendermode InteractiveServer
+@inject DiplomaTry2.Services.PrintSourceSelection Selection
+@inject DiplomaTry2.Services.PrintSourcePreferences Preferences
+
+<AuthorizeView Roles="Admin">
+<div class="source-panel" role="status">
+    <div class="source-panel__controls">
+        <label for="print-source-mode" class="mb-0">Источник данных:</label>
+        <select id="print-source-mode" class="form-select form-select-sm w-auto"
+                disabled="@(!ready || saving)" value="@Selection.Mode" @onchange="ChangeMode">
+            <option value="Fixture">Тестовые данные</option>
+            <option value="Windows" disabled="@(string.IsNullOrWhiteSpace(Selection.ServerName))">Сервер @Selection.ServerName</option>
+        </select>
+
+        @if (Selection.IsFixture)
+        {
+            <label for="print-source-scenario" class="mb-0">Набор:</label>
+            <select id="print-source-scenario" class="form-select form-select-sm w-auto"
+                    disabled="@(!ready || saving)" value="@Selection.Scenario" @onchange="ChangeScenario">
+                <option value="Default">Обычный</option>
+                <option value="Empty">Пустой</option>
+                <option value="Error">Ошибка</option>
+                <option value="MissingModel">Без модели</option>
+            </select>
+            <span class="source-panel__detail">Данные не получены с реального сервера.</span>
+        }
+        else
+        {
+            <span class="source-panel__detail">Используются реальные данные @Selection.ServerName.</span>
+            <span class="source-panel__detail">При первом запуске импорт событий читает доступный журнал, затем продолжает с сохранённой позиции.</span>
+        }
+    </div>
+    <small>Выбор влияет на следующие запросы. Сохранённые записи в БД общие для обоих источников.</small>
+    <a href="settings">Настроить сервер печати</a>
+    @if (error is not null)
+    {
+        <p role="alert">@error</p>
+    }
+</div>
+</AuthorizeView>
+
+@code {
+    private bool ready, saving;
+    private string? error;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            await Preferences.LoadAsync();
+            ready = true;
+        }
+        catch (JSException) { error = "Не удалось прочитать настройки источника. Проверьте доступ к хранилищу браузера и обновите страницу."; }
+        StateHasChanged();
+    }
+
+    private Task ChangeMode(ChangeEventArgs args) => SaveAsync(args.Value?.ToString() ?? "", Selection.Scenario);
+
+    private Task ChangeScenario(ChangeEventArgs args) => SaveAsync(Selection.Mode, args.Value?.ToString() ?? "");
+
+    private async Task SaveAsync(string mode, string scenario)
+    {
+        if (!ready || saving) return;
+        saving = true;
+        error = null;
+        try { await Preferences.SaveAsync(mode, Selection.ServerName, scenario); }
+        catch (ArgumentException ex) { error = ex.Message; }
+        catch (JSException) { error = "Не удалось сохранить настройки источника в браузере."; }
+        finally { saving = false; }
+    }
+}

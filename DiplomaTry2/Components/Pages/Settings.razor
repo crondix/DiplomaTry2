@@ -1,0 +1,249 @@
+@page "/settings"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@implements IDisposable
+@using DiplomaTry2.Data
+@using Microsoft.Data.SqlClient
+@inject ApplicationSettingsService SettingsService
+@inject AuthenticationStateProvider Authentication
+@inject NavigationManager Navigation
+@inject Microsoft.Extensions.Logging.ILogger<Settings> Logger
+
+<PageTitle>Настройки — Учёт печати</PageTitle>
+<div class="settings-page">
+    <div class="settings-shell">
+        <aside class="settings-sidebar">
+            <div class="settings-brand"><span class="brand-mark" aria-hidden="true">П</span><div><span class="eyebrow">Учёт печати</span><h1>Настройки</h1></div></div>
+            <nav class="settings-nav" aria-label="Разделы настроек">
+                @foreach (var item in Sections.Where(s => !s.AdminOnly || isAdmin)) {
+                    <a href="@SectionUrl(item.Key)" class="@(ActiveSection == item.Key ? "section-link active" : "section-link")" aria-current="@(ActiveSection == item.Key ? "page" : null)" @onclick="() => OpenSection(item.Key)" @onclick:preventDefault>
+                        <span class="nav-number" aria-hidden="true">@item.Number</span><span><strong>@item.Title</strong><small>@item.Hint</small></span>
+                    </a>
+                }
+            </nav>
+            <div class="sidebar-account"><span class="avatar" aria-hidden="true">@AccountInitials</span><div><strong>@accountName</strong><small>@(isAdmin ? "Администратор" : "Пользователь") · Windows</small></div></div>
+        </aside>
+        <main class="settings-main" aria-labelledby="section-title">
+            <header class="section-header"><div><p class="eyebrow">Параметры приложения</p><h2 id="section-title">@CurrentSection.Title</h2><p>@CurrentSection.Description</p></div><span class="access-badge">@(isAdmin ? "Полный доступ" : "Только просмотр")</span></header>
+            @if (message is not null) { <p role="status" class="settings-notice">@message</p> }
+            @if (error is not null) { <p role="alert" class="settings-notice settings-notice--error">@error</p> }
+            @if (ActiveSection == "overview") {
+                <div class="overview-cards">
+                    <a class="overview-card" href="@SectionUrl("database")" @onclick='() => OpenSection("database")' @onclick:preventDefault>
+                        <div class="card-top"><span class="card-symbol" aria-hidden="true">DB</span><DiplomaTry2.Components.Layout.ConnectionStatus /></div>
+                        <h3>Основная база данных</h3><strong class="card-value">@Display(savedDatabase, "Подключение не задано")</strong><p>@Display(savedServer, "Укажите SQL Server в настройках")</p><span class="card-link">Подключение <span aria-hidden="true">↗</span></span>
+                    </a>
+                    <a class="overview-card" href="@SectionUrl("printing")" @onclick='() => OpenSection("printing")' @onclick:preventDefault>
+                        <div class="card-top"><span class="card-symbol" aria-hidden="true">PR</span><DiplomaTry2.Components.Layout.ConnectionStatus IsPrintServer="true" /></div>
+                        <h3>Сервер печати</h3><strong class="card-value">@Display(savedPrintServer, "Сервер не задан")</strong><p>Общий источник для пользователей</p><span class="card-link">Параметры печати <span aria-hidden="true">↗</span></span>
+                    </a>
+                    @if (isAdmin) {
+                        <a class="overview-card" href="@SectionUrl("users")" @onclick='() => OpenSection("users")' @onclick:preventDefault>
+                            <div class="card-top"><span class="card-symbol" aria-hidden="true">US</span><span class="status-badge">Windows</span></div>
+                            <h3>Пользователи</h3><strong class="card-value card-value--number">@accounts.Count</strong><p>Администраторов: @accounts.Count(a => a.Role == "Admin")</p><span class="card-link">Управление доступом <span aria-hidden="true">↗</span></span>
+                        </a>
+                    } else {
+                        <section class="overview-card"><div class="card-top"><span class="card-symbol" aria-hidden="true">ID</span><span class="status-badge">Windows</span></div><h3>Ваш доступ</h3><strong class="card-value">Пользователь</strong><p>Просмотр настроек приложения</p></section>
+                    }
+                </div>
+                <section class="settings-panel overview-summary"><div class="panel-heading"><h3>Текущая конфигурация</h3><span class="muted">Сохранённые параметры</span></div>
+                    <dl class="settings-details"><div><dt>Подключение к основной БД</dt><dd>@(DatabaseConfigured ? (savedIntegrated ? "Аутентификация Windows" : "Аутентификация SQL Server") : "Не задано")</dd></div><div><dt>Учётные записи и настройки</dt><dd>Постоянное хранилище на сервере</dd></div><div><dt>Вход в приложение</dt><dd>Учётная запись Windows</dd></div></dl>
+                    <p class="panel-footnote">Индикаторы подключения обновляются каждые 30 секунд. Для сервера печати проверяется доступность RPC-порта 135.</p>
+                </section>
+                @if (isAdmin) { <a class="tools-link" href="test-tools"><span>Тестовые инструменты</span><small>Источник Fixture и тестовые сценарии</small><span aria-hidden="true">↗</span></a> }
+            }
+            else if (ActiveSection == "database") {
+                <section class="settings-panel form-panel">
+                    <div class="panel-heading"><h3>Сохранённые базы данных</h3><span class="status-badge">@databaseConnections.Count</span></div>
+                    @if (databaseConnections.Count == 0) { <p class="panel-footnote">Список пока пуст. Добавьте подключение к базе данных.</p> }
+                    <ul class="saved-server-list">
+                        @foreach (var item in databaseConnections) {
+                            <li class="saved-server" data-database="@item.Id" @key="item.Id">
+                                <div class="saved-database-info"><div class="saved-server-name"><strong>@item.Database</strong>@if (item.IsActive) { <span class="role-badge role-badge--admin">Активная</span> }</div><small>@item.Server · @(item.IntegratedSecurity ? "Windows" : "SQL-логин")</small></div>
+                                @if (isAdmin) {
+                                    <div class="saved-server-actions">
+                                        @if (!item.IsActive) { <button class="text-action" @onclick="() => ActivateDatabaseConnection(item.Id)" disabled="@(!ready || busy)">Сделать активной</button> }
+                                        <button class="text-action" @onclick="() => CheckSavedDatabaseConnection(item.Id)" disabled="@(!ready || busy)">Проверить</button>
+                                        <button class="text-action" @onclick="() => EditDatabaseConnection(item)" disabled="@(!ready || busy)">Изменить</button>
+                                        <button class="text-action text-action--danger" @onclick="() => RemoveDatabaseConnection(item.Id)" disabled="@(!ready || busy || item.IsActive)">Удалить из списка</button>
+                                    </div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                    <p class="panel-footnote">Активная БД общая для всех пользователей. Перед переключением проверяется подключение и совместимость схемы.</p>
+                    @if (isAdmin) { <footer class="form-actions"><DxButton Text="Добавить подключение" Click="BeginNewDatabaseConnection" Enabled="@(ready && !busy)" /></footer> }
+                </section>
+                <section class="settings-panel form-panel">
+                    <div class="panel-heading"><h3>@(!isAdmin ? "Подключение к SQL Server" : editingConnectionId.HasValue ? "Изменить подключение" : "Новое подключение к SQL Server")</h3><span class="status-badge">@(!isAdmin ? "Только просмотр" : editingConnectionId.HasValue ? "В списке" : "Добавление")</span></div>
+                    @if (isAdmin) {
+                        <div class="form-grid"><div class="settings-field"><label for="sql-server">Сервер SQL Server</label><DxTextBox @bind-Text="server" InputId="sql-server" NullText="Например, server\SQLEXPRESS" Enabled="@(ready && !busy)" /></div><div class="settings-field"><label for="sql-database">База данных</label><DxTextBox @bind-Text="database" InputId="sql-database" NullText="Имя базы данных" Enabled="@(ready && !busy)" /></div></div>
+                        <div class="auth-option"><label><input type="checkbox" @bind="integrated" disabled="@(!ready || busy)" /><span><strong>Аутентификация Windows</strong><small>Подключение от имени службы приложения</small></span></label></div>
+                        @if (!integrated) {
+                            <div class="form-grid"><div class="settings-field"><label for="sql-login">SQL-логин</label><DxTextBox @bind-Text="login" InputId="sql-login" Enabled="@(ready && !busy)" /></div><div class="settings-field"><label for="sql-password">Новый пароль</label><input class="password-input" id="sql-password" type="password" autocomplete="new-password" @bind="password" disabled="@(!ready || busy)" /><small>Оставьте пустым, чтобы сохранить пароль прежнего подключения.</small></div></div>
+                        }
+                        <div class="certificate-option"><DxCheckBox @bind-Checked="trustServerCertificate" CheckType="CheckType.Switch" InputId="sql-trust-certificate" Enabled="@(ready && !busy)">Доверять сертификату сервера</DxCheckBox><small>Для локального SQL Server с самоподписанным сертификатом. При включении шифрование сохраняется, проверка сертификата отключается.</small></div>
+                        <div class="form-hint">Перед сохранением приложение проверит подключение и совместимость базы данных. Новое подключение добавляется в список; чтобы переключиться, нажмите «Сделать активной».</div>
+                        <footer class="form-actions"><DxButton Text="Проверить подключение" Click="CheckConnection" RenderStyle="ButtonRenderStyle.Secondary" RenderStyleMode="ButtonRenderStyleMode.Outline" Enabled="@(ready && !busy)" /><DxButton Text="Сохранить в список" Click="SaveConnection" Enabled="@(ready && !busy)" /></footer>
+                    } else { <dl class="settings-details"><div><dt>Сервер</dt><dd>@Display(server, "Не задан")</dd></div><div><dt>База данных</dt><dd>@Display(database, "Не задана")</dd></div></dl> }
+                </section>
+                <p class="section-footnote">Изменения применяются к новым операциям. Уже начатые операции завершаются с прежним подключением.</p>
+            }
+            else if (ActiveSection == "printing") {
+                <section class="settings-panel form-panel"><div class="panel-heading"><h3>Сохранённые серверы</h3><span class="status-badge">@printServers.Count</span></div>
+                    @if (printServers.Count == 0) { <p class="panel-footnote">Список пока пуст. Добавьте сервер по имени или IP-адресу.</p> }
+                    <ul class="saved-server-list">
+                        @foreach (var item in printServers) {
+                            <li class="saved-server" data-server="@item.Host" @key="item.Host"><div class="saved-server-name"><strong>@item.Host</strong>@if (item.IsActive) { <span class="role-badge role-badge--admin">Активный</span> }</div>
+                                @if (isAdmin) {
+                                    <div class="saved-server-actions">
+                                        @if (!item.IsActive) { <button class="text-action" @onclick="() => ActivatePrintServer(item.Host)" disabled="@(!ready || busy)">Сделать активным</button> }
+                                        <button class="text-action" @onclick="() => CheckPrintServer(item.Host)" disabled="@(!ready || busy)">Проверить</button>
+                                        <button class="text-action text-action--danger" @onclick="() => RemovePrintServer(item.Host)" disabled="@(!ready || busy || item.IsActive)">Удалить из списка</button>
+                                    </div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                    <p class="panel-footnote">Активный сервер общий для всех пользователей. Новые запросы используют его, текущий импорт завершается с прежним источником.</p>
+                    @if (isAdmin) { <p class="panel-footnote">Проверка выполняется с сервера приложения: DNS, один ping и подключение к TCP-порту RPC 135. Принтеры и события не загружаются.</p> }
+                </section>
+                @if (isAdmin) {
+                    <section class="settings-panel form-panel"><div class="panel-heading"><h3>Добавить сервер</h3><span class="status-badge">В постоянный список</span></div>
+                        <div class="settings-field"><label for="global-print-server">Имя или IP-адрес</label><DxTextBox @bind-Text="printServer" InputId="global-print-server" NullText="Например, print-server" BindValueMode="BindValueMode.OnInput" Enabled="@(ready && !busy)" /><small>Имя компьютера, DNS-имя или IP-адрес без пути и порта.</small></div>
+                        <footer class="form-actions"><DxButton Text="Проверить адрес" Click="() => CheckPrintServer(printServer)" RenderStyle="ButtonRenderStyle.Secondary" RenderStyleMode="ButtonRenderStyleMode.Outline" Enabled="@(ready && !busy && !string.IsNullOrWhiteSpace(printServer))" /><DxButton Text="Добавить в список" Click="AddPrintServer" Enabled="@(ready && !busy)" /></footer>
+                    </section>
+                }
+                @if (checkingHost is not null) { <p class="settings-notice" role="status">Проверяем @checkingHost…</p> }
+                @if (probeResult is not null) {
+                    <section class="settings-panel form-panel probe-panel" role="status"><div class="panel-heading"><h3>Проверка: @probeResult.Host</h3><span class="muted">Последняя проверка</span></div>
+                        <dl class="settings-details"><div><dt>IP-адрес</dt><dd>@(probeResult.Address ?? "Не определён")</dd></div><div><dt>DNS / адрес</dt><dd>@probeResult.Dns.Detail</dd></div><div><dt>Ping (ICMP)</dt><dd>@probeResult.Ping.Detail</dd></div><div><dt>RPC (TCP 135)</dt><dd>@probeResult.Rpc.Detail</dd></div></dl>
+                        <p class="panel-footnote">Ping может блокироваться межсетевым экраном. Ответ ping и открытый порт RPC подтверждают только сетевую доступность, а не работу службы печати и права доступа.</p>
+                    </section>
+                }
+                @if (isAdmin) { <a class="tools-link" href="test-tools"><span>Тестовые инструменты</span><small>Отдельный выбор тестового источника для вашей вкладки</small><span aria-hidden="true">↗</span></a> }
+            }
+            else if (ActiveSection == "logs" && isAdmin) {
+                <ApplicationLogs />
+            }
+            else if (ActiveSection == "users" && isAdmin) {
+                <section class="settings-panel"><div class="panel-heading"><h3>Назначить доступ</h3><span class="status-badge">Windows</span></div>
+                    <div class="account-form"><div class="settings-field"><label for="account-name">Учётная запись Windows</label><DxTextBox @bind-Text="newAccount" InputId="account-name" NullText="ДОМЕН\имя" Enabled="@(ready && !busy)" /></div><div class="settings-field"><label for="account-role">Роль</label><DxComboBox Data="Roles" TData="string" TValue="string" @bind-Value="newRole" AllowUserInput="false" InputId="account-role" Enabled="@(ready && !busy)" /></div><DxButton Text="Назначить роль" Click="AssignRole" Enabled="@(ready && !busy)" /></div>
+                    <p class="panel-footnote">Используйте существующую учётную запись Windows.</p>
+                </section>
+                <section class="settings-panel users-panel"><div class="panel-heading"><h3>Пользователи приложения</h3><span class="status-badge">@accounts.Count</span></div>
+                    <div class="users-table-wrap"><table class="users-table"><thead><tr><th scope="col">Учётная запись</th><th scope="col">Роль</th><th scope="col">Действия</th></tr></thead><tbody>
+                        @foreach (var account in accounts) {
+                            <tr @key="account.Sid"><td><strong>@account.Name</strong><details><summary>SID учётной записи</summary><code>@account.Sid</code></details></td><td><span class="role-badge @(account.Role == "Admin" ? "role-badge--admin" : "")">@account.Role</span></td><td><div class="user-actions"><button class="text-action" disabled="@(!ready || busy)" @onclick='() => ChangeRole(account, account.Role == "Admin" ? "User" : "Admin")'>@(account.Role == "Admin" ? "Назначить User" : "Назначить Admin")</button><button class="text-action text-action--danger" disabled="@(!ready || busy)" @onclick="() => ChangeRole(account, null)">Удалить из приложения</button></div></td></tr>
+                        }
+                    </tbody></table></div>
+                    <p class="panel-footnote">Последнего администратора нельзя удалить или понизить до User.</p>
+                </section>
+            }
+        </main>
+    </div>
+</div>
+
+@code {
+    private sealed record SettingsSection(string Key, string Number, string Title, string Hint, string Description, bool AdminOnly = false);
+    private static readonly SettingsSection[] Sections = [
+        new("overview", "01", "Обзор", "Текущая конфигурация", "Основные параметры и быстрый переход к настройкам."),
+        new("database", "02", "База данных", "Подключение к SQL Server", "Подключение к базе принтеров и событий печати."),
+        new("printing", "03", "Сервер печати", "Глобальный источник", "Общий сервер печати для всех пользователей приложения."),
+        new("users", "04", "Пользователи", "Учётные записи и роли", "Управление доступом к приложению через учётные записи Windows.", true),
+        new("logs", "05", "Логи", "События и ошибки", "Журнал работы приложения и диагностика ошибок.", true)
+    ];
+    [SupplyParameterFromQuery(Name = "section")] public string? Section { get; set; }
+    private string ActiveSection => Sections.Any(s => s.Key == Section && (!s.AdminOnly || isAdmin)) ? Section! : "overview";
+    private SettingsSection CurrentSection => Sections.First(s => s.Key == ActiveSection);
+    private bool DatabaseConfigured => !string.IsNullOrWhiteSpace(savedDatabase);
+    private string savedDatabase = "", savedServer = "", savedPrintServer = "";
+    private bool savedIntegrated;
+    private string AccountInitials => new string(accountName.Split('\\').Last().Take(2).ToArray()).ToUpperInvariant();
+    private static string Display(string value, string empty) => string.IsNullOrWhiteSpace(value) ? empty : value;
+    private string SectionUrl(string key) => Navigation.GetUriWithQueryParameter("section", key == "overview" ? null : key);
+    private void OpenSection(string key) { error = message = null; Navigation.NavigateTo(SectionUrl(key)); }
+    private static readonly string[] Roles = ["User", "Admin"];
+    private IReadOnlyList<AccountInfo> accounts = [];
+    private IReadOnlyList<PrintServerInfo> printServers = [];
+    private IReadOnlyList<DatabaseConnectionInfo> databaseConnections = [];
+    private int? editingConnectionId;
+    private PrintServerProbeResult? probeResult;
+    private string? checkingHost;
+    private readonly CancellationTokenSource lifetime = new();
+    private string printServer = "", server = "", database = "", login = "", password = "", accountName = "", newAccount = "", newRole = "User";
+    private bool integrated = true, trustServerCertificate, isAdmin, busy, ready;
+    private string? error, message;
+    protected override async Task OnInitializedAsync() {
+        accountName = (await Authentication.GetAuthenticationStateAsync()).User.Identity?.Name ?? "";
+        await ReadAsync();
+    }
+    private async Task ReadAsync() {
+        var value = SettingsService.Read();
+        printServers = SettingsService.PrintServers();
+        databaseConnections = SettingsService.DatabaseConnections();
+        editingConnectionId = databaseConnections.FirstOrDefault(c => c.IsActive)?.Id;
+        trustServerCertificate = false;
+        if (!string.IsNullOrWhiteSpace(value.ConnectionString)) {
+            var cs = new SqlConnectionStringBuilder(value.ConnectionString);
+            server = cs.DataSource; database = cs.InitialCatalog; integrated = cs.IntegratedSecurity; login = cs.UserID;
+            trustServerCertificate = cs.TrustServerCertificate;
+        }
+        // Use the attributes belonging to the selected profile if another process
+        // switched databases between reading the snapshot and the connection list.
+        var activeConnection = databaseConnections.FirstOrDefault(c => c.IsActive);
+        if (activeConnection is not null) LoadDatabaseConnection(activeConnection);
+        savedDatabase = database;
+        savedServer = server; savedPrintServer = value.PrintServer; savedIntegrated = integrated;
+        password = "";
+        try { accounts = await SettingsService.AccountsAsync(); isAdmin = true; }
+        catch (UnauthorizedAccessException) { isAdmin = false; accounts = []; }
+    }
+    protected override void OnAfterRender(bool firstRender) { if (firstRender) { ready = true; StateHasChanged(); } }
+    private ConnectionForm Form => new(server, database, integrated, login, string.IsNullOrEmpty(password) ? null : password, trustServerCertificate);
+    private void BeginNewDatabaseConnection() {
+        editingConnectionId = null;
+        server = database = login = password = "";
+        integrated = true; trustServerCertificate = false;
+        error = message = null;
+    }
+    private void EditDatabaseConnection(DatabaseConnectionInfo connection) {
+        LoadDatabaseConnection(connection);
+        error = message = null;
+    }
+    private void LoadDatabaseConnection(DatabaseConnectionInfo connection) {
+        editingConnectionId = connection.Id;
+        server = connection.Server; database = connection.Database; integrated = connection.IntegratedSecurity;
+        login = connection.Login; trustServerCertificate = connection.TrustServerCertificate; password = "";
+    }
+    private Task CheckConnection() => Run(async () => { await SettingsService.CheckDatabaseConnectionAsync(Form, editingConnectionId); message = "Подключение и схема совместимы. Можно сохранить подключение в список."; }, reload: false);
+    private Task SaveConnection() => Run(async () => {
+        var active = databaseConnections.Any(c => c.Id == editingConnectionId && c.IsActive);
+        await SettingsService.SaveDatabaseConnectionAsync(Form, editingConnectionId);
+        message = active ? "Активное подключение обновлено. Новые операции используют сохранённые параметры." : "Подключение сохранено в списке. Его можно выбрать активным.";
+    });
+    private Task ActivateDatabaseConnection(int id) => Run(async () => { await SettingsService.ActivateDatabaseConnectionAsync(id); message = "Активная БД изменена для всех пользователей. Новые операции используют выбранное подключение."; });
+    private Task CheckSavedDatabaseConnection(int id) => Run(async () => { await SettingsService.CheckDatabaseConnectionAsync(id); message = "Сохранённое подключение и схема совместимы."; }, reload: false);
+    private Task RemoveDatabaseConnection(int id) => Run(async () => { await SettingsService.RemoveDatabaseConnectionAsync(id); message = "Подключение удалено из списка."; });
+    private Task AddPrintServer() => Run(async () => { await SettingsService.AddPrintServerAsync(printServer); printServer = ""; message = "Сервер сохранён в списке. Его можно выбрать активным."; });
+    private Task ActivatePrintServer(string host) => Run(async () => { await SettingsService.ActivatePrintServerAsync(host); probeResult = null; message = "Активный сервер печати изменён для всех пользователей."; });
+    private Task RemovePrintServer(string host) => Run(async () => { await SettingsService.RemovePrintServerAsync(host); if (probeResult?.Host == host) probeResult = null; message = "Сервер удалён из списка."; });
+    private Task CheckPrintServer(string host) => Run(async () => {
+        checkingHost = host; probeResult = null;
+        try { probeResult = await SettingsService.CheckPrintServerAsync(host, lifetime.Token); }
+        finally { checkingHost = null; }
+    }, reload: false);
+    public void Dispose() { lifetime.Cancel(); lifetime.Dispose(); }
+    private Task AssignRole() => Run(async () => { await SettingsService.ChangeAccountAsync(newAccount, newRole); newAccount = ""; message = "Роль сохранена."; });
+    private Task ChangeRole(AccountInfo account, string? role) => Run(async () => { await SettingsService.ChangeExistingAsync(account, role); message = "Назначение обновлено."; });
+    private async Task Run(Func<Task> action, bool reload = true) {
+        if (busy) return; busy = true; error = message = null;
+        try { await action(); if (reload) await ReadAsync(); }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or UnauthorizedAccessException) { Logger.LogWarning(ex, "Действие в настройках не выполнено. Раздел: {Section}.", ActiveSection); error = ex.Message; }
+        catch (System.Security.Principal.IdentityNotMappedException ex) { Logger.LogWarning(ex, "Не найдена учётная запись Windows при изменении доступа."); error = "Учётная запись Windows не найдена."; }
+        catch (Exception ex) { Logger.LogError(ex, "Ошибка в настройках. Раздел: {Section}.", ActiveSection); error = "Не удалось выполнить действие. Проверьте доступ к служебному хранилищу и Windows."; }
+        finally { if (reload) password = ""; busy = false; }
+    }
+}
+

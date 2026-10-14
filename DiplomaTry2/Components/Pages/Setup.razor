@@ -1,0 +1,46 @@
+@page "/Setup"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using DiplomaTry2.Data
+@inject FirstRunAdminSetup SetupService
+
+<PageTitle>Первоначальная настройка</PageTitle>
+<h1>Первоначальная настройка</h1>
+
+@if (hasAdmin)
+{
+    <p>Администратор уже назначен. <a href="/">Перейти на главную</a>.</p>
+}
+else if (!localRequest)
+{
+    <p class="alert alert-warning">Первого администратора можно назначить только при открытии приложения на компьютере, где оно запущено.</p>
+}
+else if (account is null)
+{
+    <p class="alert alert-danger">Не удалось определить SID учётной записи Windows. Проверьте настройку Windows-аутентификации.</p>
+}
+else
+{
+    <p>Текущая учётная запись Windows: <strong>@account.Value.Name</strong></p>
+    <p>После подтверждения эта учётная запись получит доступ к импорту принтеров и событий.</p>
+    <form action="/Setup/claim" method="post">
+        <AntiforgeryToken />
+        <button class="btn btn-primary" type="submit">Назначить меня администратором</button>
+    </form>
+}
+
+@code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+    private (string Sid, string Name)? account;
+    private bool localRequest;
+    private bool hasAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hasAdmin = await SetupService.HasWindowsAdminAsync();
+        if (HttpContext is not null)
+        {
+            localRequest = FirstRunAdminSetup.IsLocalRequest(HttpContext);
+            account = FirstRunAdminSetup.WindowsAccount(HttpContext.User);
+        }
+    }
+}

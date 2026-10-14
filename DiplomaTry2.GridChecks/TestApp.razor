@@ -1,0 +1,16 @@
+@namespace DiplomaTry2.GridChecks
+@using DevExpress.Blazor
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <base href="/" />
+    @DxResourceManager.RegisterTheme(Themes.BlazingDark)
+    @DxResourceManager.RegisterScripts()
+    <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+    <GridCheck @rendermode="InteractiveServer" />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+</html>

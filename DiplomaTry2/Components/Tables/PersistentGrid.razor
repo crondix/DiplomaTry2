@@ -1,0 +1,300 @@
+@typeparam TItem
+@typeparam TRow
+@namespace DiplomaTry2.Components.Tables
+@implements IAsyncDisposable
+@using System.Text.Json
+@using System.Security.Claims
+@using System.Security.Cryptography
+@using System.Text
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider Authentication
+
+<section class="print-grid" aria-label="@Label" @ref="host">
+    @if (ready)
+    {
+        <div class="print-grid__actions">
+            <button type="button" class="btn btn-outline-primary btn-sm" aria-expanded="@showSearch.ToString().ToLowerInvariant()"
+                    @onclick="ToggleSearch">@(showSearch ? "Скрыть поиск" : "Поиск")</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => grid?.ShowColumnChooser()">Колонки</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="ResetLayoutAsync">Сбросить настройки таблицы</button>
+        </div>
+        <DxGrid @key="generation" @ref="grid" Data="rows" CssClass="print-grid__data"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn" TextWrapEnabled="true"
+                ShowSearchBox="showSearch" SearchBoxNullText="Поиск по таблице…" @bind-SearchText="searchText"
+                ShowFilterRow="false" ShowGroupPanel="false"
+                PageSize="25" PageSizeSelectorVisible="true" PageSizeSelectorItems="@(new int[] { 25, 50, 100 })"
+                LayoutAutoLoading="LoadLayoutAsync" LayoutAutoSaving="SaveLayoutAsync"
+                CustomizeElement="CustomizeElement">
+            <Columns>
+                @foreach (var column in Columns)
+                {
+                    <DxGridDataColumn @key="column.Field" Name="@column.Field" FieldName="@column.Field"
+                                      Caption="@column.Title" MinWidth="64" Width="@InitialWidth(column)"
+                                      DisplayFormat="@column.DisplayFormat" Visible="@column.Visible" />
+                }
+                @if (RowActions is not null)
+                {
+                    <DxGridDataColumn Name="RowActions" FieldName="RowActions" Caption="Действия" UnboundType="GridUnboundColumnType.String"
+                                      AllowSort="false" AllowGroup="false" AllowFilter="false" Width="240px" MinWidth="160">
+                        <CellDisplayTemplate>
+                            <div @onclick:stopPropagation="true">@RowActions((TRow)context.DataItem)</div>
+                        </CellDisplayTemplate>
+                    </DxGridDataColumn>
+                }
+            </Columns>
+        </DxGrid>
+    }
+    else
+    {
+        <p role="status">Загрузка таблицы…</p>
+    }
+    @if (notice is not null)
+    {
+        <p class="print-grid__notice" role="status">@notice</p>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string TableKey { get; set; } = "";
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public IReadOnlyList<GridColumn> Columns { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+    [Parameter, EditorRequired] public Func<TItem, int, TRow> RowSelector { get; set; } = default!;
+    [Parameter] public RenderFragment<TRow>? RowActions { get; set; }
+
+    private ElementReference host;
+    private IGrid? grid;
+    private IJSObjectReference? module;
+    private DotNetObjectReference<PersistentGrid<TItem, TRow>>? reference;
+    private IReadOnlyList<TItem>? previousItems;
+    private TRow[] rows = [];
+    private string storageKey = "";
+    private string legacyStorageKey = "";
+    private string visibleSignature = "";
+    private bool fillPending;
+    private string? notice;
+    private bool ready;
+    private bool attached;
+    private bool disposed;
+    private bool resetPending;
+    private bool showSearch;
+    private string searchText = "";
+    private int generation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Authentication.GetAuthenticationStateAsync()).User;
+        var identity = user.FindFirstValue(ClaimTypes.PrimarySid) ?? user.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? user.Identity?.Name ?? "anonymous";
+        var signature = string.Join("|", Columns.Select(column => column.Field));
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(identity + "|" + signature)));
+        legacyStorageKey = $"diploma:grid:v1:{TableKey}:{hash}";
+        storageKey = $"diploma:grid:v2:{TableKey}:{hash}";
+        visibleSignature = string.Join("|", Columns.Where(column => column.Visible).Select(column => column.Field).Order());
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(previousItems, Items)) return;
+        previousItems = Items;
+        rows = Items.Select(RowSelector).ToArray();
+    }
+
+    private string InitialWidth(GridColumn column) =>
+        (100d * column.WidthGrow / Math.Max(1, Columns.Where(item => item.Visible).Sum(item => item.WidthGrow)))
+            .ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "%";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (disposed) return;
+        try
+        {
+            if (firstRender)
+            {
+                module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/grid-state.js?v=20261013-view");
+                if (disposed) return;
+                ready = true;
+                StateHasChanged();
+            }
+            else if (ready && !attached && module is not null)
+            {
+                reference = DotNetObjectReference.Create(this);
+                attached = true;
+                await module.InvokeVoidAsync("attachResize", host, reference);
+            }
+            if (resetPending && grid is not null)
+            {
+                resetPending = false;
+                await PersistAsync(grid.SaveLayout());
+            }
+            if (fillPending && grid is not null && module is not null)
+            {
+                fillPending = false;
+                var measured = await module.InvokeAsync<GridWidth[]>("measureWidths", host);
+                var total = measured.Sum(column => column.Width);
+                if (total > 0)
+                {
+                    grid.BeginUpdate();
+                    try
+                    {
+                        foreach (var column in grid.GetColumns().OfType<IGridDataColumn>().Where(column => column.Visible))
+                        {
+                            var width = measured.FirstOrDefault(item => item.Field == column.FieldName);
+                            if (width is not null) column.Width = (100 * width.Width / total)
+                                .ToString("0.######", System.Globalization.CultureInfo.InvariantCulture) + "%";
+                        }
+                    }
+                    finally { grid.EndUpdate(); }
+                    await PersistAsync(grid.SaveLayout());
+                }
+            }
+        }
+        catch (JSDisconnectedException) { }
+    }
+
+    private async Task LoadLayoutAsync(GridPersistentLayoutEventArgs args)
+    {
+        if (module is null || resetPending) return;
+        try
+        {
+            var stored = await module.InvokeAsync<GridStorageResult>("read", storageKey);
+            if (!stored.Available) SetStorageNotice();
+            var migrating = string.IsNullOrWhiteSpace(stored.Value);
+            if (migrating) stored = await module.InvokeAsync<GridStorageResult>("read", legacyStorageKey);
+            if (string.IsNullOrWhiteSpace(stored.Value)) return;
+            try
+            {
+                var layout = JsonSerializer.Deserialize<GridPersistentLayout>(stored.Value);
+                if (layout is not null)
+                {
+                    if (migrating) layout = GridLayoutPolicy.Migrate(layout, Columns);
+                    args.Layout = layout;
+                    searchText = layout.SearchText ?? "";
+                    showSearch = !string.IsNullOrWhiteSpace(layout.SearchText);
+                    if (showSearch) await InvokeAsync(StateHasChanged);
+                    visibleSignature = VisibleSignature(layout);
+                    if (migrating) await PersistAsync(layout);
+                }
+            }
+            catch (JsonException)
+            {
+                await module.InvokeAsync<bool>("remove", migrating ? legacyStorageKey : storageKey);
+                notice = "Сохранённые настройки таблицы повреждены и сброшены.";
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (JSDisconnectedException) { }
+    }
+
+    private static string VisibleSignature(GridPersistentLayout layout) =>
+        string.Join("|", layout.Columns.Where(column => column.Visible != false).Select(column => column.FieldName).Order());
+
+    private async Task SaveLayoutAsync(GridPersistentLayoutEventArgs args)
+    {
+        if (resetPending) return;
+        var signature = VisibleSignature(args.Layout);
+        if (signature != visibleSignature)
+        {
+            visibleSignature = signature;
+            if (signature.Length > 0)
+            {
+                fillPending = true;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        await PersistAsync(args.Layout);
+    }
+
+    private async Task PersistAsync(GridPersistentLayout layout)
+    {
+        if (module is null || disposed) return;
+        try
+        {
+            if (!await module.InvokeAsync<bool>("write", storageKey, JsonSerializer.Serialize(layout))) SetStorageNotice();
+        }
+        catch (JSDisconnectedException) { }
+    }
+
+    private void SetStorageNotice()
+    {
+        const string message = "Браузер не разрешает сохранять настройки таблицы. Они действуют до ухода со страницы.";
+        if (notice == message || disposed) return;
+        notice = message;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ResetLayoutAsync()
+    {
+        if (module is null) return;
+        notice = null;
+        showSearch = false;
+        searchText = "";
+        try
+        {
+            if (!await module.InvokeAsync<bool>("remove", storageKey)) SetStorageNotice();
+            await module.InvokeAsync<bool>("remove", legacyStorageKey);
+            visibleSignature = string.Join("|", Columns.Where(column => column.Visible).Select(column => column.Field).Order());
+            fillPending = false;
+            resetPending = true;
+            generation++;
+        }
+        catch (JSDisconnectedException) { }
+    }
+
+    private void CustomizeElement(GridCustomizeElementEventArgs args)
+    {
+        if (args.ElementType is GridElementType.DataCell or GridElementType.HeaderCell && args.Column is IGridDataColumn column)
+            args.Attributes["data-grid-field"] = column.FieldName;
+    }
+
+    private void ToggleSearch()
+    {
+        showSearch = !showSearch;
+        if (!showSearch)
+        {
+            // Never leave an active search filtering rows behind a hidden editor.
+            searchText = "";
+        }
+    }
+
+    [JSInvokable]
+    public async Task ResizeColumns(string field, string nextField, string[] fields, double[] widths, double delta)
+    {
+        if (disposed || grid is null || fields.Length != widths.Length) return;
+        var index = Array.IndexOf(fields, field);
+        var nextIndex = Array.IndexOf(fields, nextField);
+        if (index < 0 || nextIndex < 0 || widths.Any(width => !double.IsFinite(width) || width < 64)) return;
+        delta = Math.Clamp(delta, 64 - widths[index], widths[nextIndex] - 64);
+        widths[index] += delta;
+        widths[nextIndex] -= delta;
+        grid.BeginUpdate();
+        try
+        {
+            foreach (var column in grid.GetColumns().OfType<IGridDataColumn>())
+            {
+                var position = Array.IndexOf(fields, column.FieldName);
+                if (position >= 0) column.Width = widths[position].ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "px";
+            }
+        }
+        finally { grid.EndUpdate(); }
+        await PersistAsync(grid.SaveLayout());
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        disposed = true;
+        if (module is not null)
+        {
+            try
+            {
+                await module.InvokeVoidAsync("detachResize", host);
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException) { }
+        }
+        reference?.Dispose();
+    }
+
+    public sealed record GridStorageResult(string? Value, bool Available);
+    public sealed record GridWidth(string Field, double Width);
+}

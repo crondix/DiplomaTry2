@@ -30,7 +30,7 @@ namespace DiplomaModels
             set
             {
                 _modelName = value;
-                _modelNameNormalized = value.ToUpper().Replace(" ", "");
+                _modelNameNormalized = value.Trim().ToUpperInvariant().Replace(" ", "");
             }
         }
         

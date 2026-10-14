@@ -74,5 +74,9 @@ namespace DiplomaTry2.Models
         /// </summary>
         public DateTime? DateTime { get => dateTime; set => dateTime = value; }
 
+        public string? SourceName { get; set; }
+        public string LogName { get; set; } = "Microsoft-Windows-PrintService/Operational";
+        public long? RecordId { get; set; }
+
     }
 }

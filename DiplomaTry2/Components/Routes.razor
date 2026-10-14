@@ -1,8 +1,21 @@
 ﻿<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(Client._Imports).Assembly }">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
-            <NotAuthorized>
-                <RedirectToLogin />
+            <NotAuthorized Context="authState">
+                @if (authState.User.Identity?.IsAuthenticated == true)
+                {
+                    <LayoutView Layout="typeof(Layout.MainLayout)">
+                        <h1>Доступ запрещён</h1>
+                        <p>Для этой операции нужна роль администратора.</p>
+                    </LayoutView>
+                }
+                else
+                {
+                    <LayoutView Layout="typeof(Layout.MainLayout)">
+                        <h1>Требуется Windows-аутентификация</h1>
+                        <p>Откройте приложение с учётной записью Windows, которой разрешён доступ.</p>
+                    </LayoutView>
+                }
             </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />

@@ -1,15 +1,71 @@
-﻿@page "/netPrinters";
+@page "/netPrinters"
 @rendermode RenderMode.InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@using DiplomaTry2.Components.Layout
 
-<button class="btn btn-primary" @onclick="NetworkPrinterAddToDB">NetworkPrinterAddToDB</button>
+<PageTitle>Сохранённые принтеры</PageTitle>
+<PrintDataFrame Title="Сохранённые принтеры" Description="Загрузить очереди из выбранного источника и назначить реальные модели устройств." ShowEditAction="true">
+<PrintSourceSwitcher />
+<button class="btn btn-primary" disabled="@(busy || loadingSaved)" @onclick="ImportAsync">@(busy ? "Загрузка…" : "Загрузить принтеры")</button>
 
+@if (statusMessage is not null)
+{
+    <p class="alert alert-success" role="status">@statusMessage</p>
+}
+@if (errorMessage is not null)
+{
+    <p class="alert alert-danger" role="alert">@errorMessage</p>
+}
 
+@if (assignPrinter is not null)
+{
+    <section class="card p-3 my-3" aria-labelledby="assign-model-title">
+        <h2 id="assign-model-title" class="h5">Модель принтера «@assignPrinter.Name»</h2>
+        <p>Драйвер: @(assignPrinter.DriverName ?? "Не указан")</p>
+        <label for="assigned-model">Модель из справочника</label>
+        <select id="assigned-model" class="form-select" disabled="@busy" @bind="assignedModelId">
+            <option value="">Не указана</option>
+            @foreach (var model in modelChoices) { <option value="@model.Id">@model.ModelName</option> }
+        </select>
+        <p class="mt-2">Недостающую модель можно добавить в разделе <a href="PrinterNameVerification">«Модели принтеров»</a>.</p>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" disabled="@busy" @onclick="SaveAssignmentAsync">Сохранить</button>
+            <button class="btn btn-outline-secondary" disabled="@busy" @onclick="() => assignPrinter = null">Отмена</button>
+        </div>
+    </section>
+}
 
-<textarea disabled="true" style="border: none;background-color:white;">
+@if (loadingSaved)
+{
+    <p role="status">Чтение сохранённых принтеров…</p>
+}
+else if (savedPrinters.Count == 0)
+{
+    <p>Сохранённых принтеров пока нет.</p>
+}
+@if (savedPrinters.Count > 0)
+{
+    <div class="print-data-frame__table-wrap">
+        <PersistentGrid TableKey="saved-printers" Label="Сохранённые принтеры"
+                        Items="savedPrinters" Columns="SavedPrinterColumns" RowSelector="SavedPrinterRow">
+            <RowActions Context="row">
+                <button class="btn btn-outline-primary btn-sm" disabled="@(busy || loadingSaved)" @onclick="() => EditAssignmentAsync(row.Id)">Выбрать модель</button>
+            </RowActions>
+        </PersistentGrid>
+    </div>
+}
+</PrintDataFrame>
 
-
-</textarea>
 @code {
- 
+    private static readonly GridColumn[] SavedPrinterColumns = [
+        new("Источник", "Source"), new("Очередь", "Name", WidthGrow: 2, Visible: false),
+        new("Общее имя", "ShareName"), new("Модель", "Model", WidthGrow: 2),
+        new("Драйвер", "Driver", WidthGrow: 2),
+        new("Порт / IP", "Port"), new("Комментарий", "Comment", WidthGrow: 2)
+    ];
 
+    public sealed record SavedRow(int Id, string Source, string? Name, string? ShareName, string? Comment, string? Port, string Model, string? Driver);
+    private static SavedRow SavedPrinterRow(DiplomaModels.NetworkPrinter printer, int index) =>
+        new(printer.Id, printer.SourceKey, printer.Name, printer.ShareName, printer.Comment,
+            printer.Ip ?? printer.NonIPAddress, printer.PrinterModel?.ModelName ?? "Не указана", printer.DriverName);
 }

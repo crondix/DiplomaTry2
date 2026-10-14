@@ -1,105 +1,115 @@
-﻿using DiplomaModels;
-
+using DiplomaModels;
 using DiplomaTry2.Data;
 using DiplomaTry2.Services;
-
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 
-namespace DiplomaTry2.Components.Pages
+namespace DiplomaTry2.Components.Pages;
+
+public partial class EventsSuccessfullyPrintingView : IDisposable
 {
-    public partial class EventsSuccessfullyPrintingView
+    [Inject] private EventLogProcessingService Importer { get; set; } = default!;
+    [Inject] private IDbContextFactory<ApplicationDbContext> ContextFactory { get; set; } = default!;
+    [Inject] private PrintSourceSelection SourceSelection { get; set; } = default!;
+    [Inject] private ILogger<EventsSuccessfullyPrintingView> Logger { get; set; } = default!;
+
+    private List<EventSuccessfulPrinting> EventsSuccessfulPrinting = [];
+    private string? AdditionErrorMessage;
+    private string? ImportSummary;
+    private string? NavigationNotice;
+    private bool Loading;
+    private bool Adding;
+    private int _currentItem;
+
+    private void ShowNavigationNotice(string message) => NavigationNotice = message;
+
+    protected override async Task OnInitializedAsync()
     {
+        SourceSelection.Changed += SourceChanged;
+        await LoadData();
+    }
 
-        [Inject]
-        private EventLogService? eventLog { get; set; }
-        [Inject]
-        private EventLogProcessingService? eventLogProcessing { get; set; }
-        [Inject]
-        private IDbContextFactory<ApplicationDbContext> DbContextFactory { get; set; }
+    private void SourceChanged()
+    {
+        EventsSuccessfulPrinting = [];
+        ImportSummary = null;
+        AdditionErrorMessage = null;
+        _ = InvokeAsync(StateHasChanged);
+    }
 
-
-
-        List<EventSuccessfulPrinting>? EventsSuccessfulPrinting;
-        string? message;
-        bool Loading = false;
-        bool Adding = false;
-        bool IsCheked = false;
-        bool? IsAdditionSuccessful;
-        string AdditionErrorMessage = "";
-        double _procent=0;
-        double _currentItem = 0;
-        double _totalyItem = 0;
-        
-        private void OnProgressChanged(int percent, int currentItem, int totalyItem)
+    private void OnProgressChanged(int percent, int currentItem, int totalItem)
+    {
+        _ = InvokeAsync(() =>
         {
-            InvokeAsync(() =>
-            {
-                _procent = percent;
-                _currentItem = currentItem;
-                _totalyItem= totalyItem;
-                StateHasChanged();
-            });
-           
-        }
+            _currentItem = currentItem;
+            StateHasChanged();
+        });
+    }
 
-
-
-            async Task Actualization()
+    private async Task Actualization()
+    {
+        if (Adding || Loading) return;
+        Adding = true;
+        ImportSummary = null;
+        AdditionErrorMessage = null;
+        _currentItem = 0;
+        Importer.AddProgressChanged += OnProgressChanged;
+        try
         {
-            try
-            {
-                
-                eventLogProcessing.AddProgressChanged += OnProgressChanged;
-                eventLogProcessing.Error += (string _message) => { IsAdditionSuccessful = false; AdditionErrorMessage = _message; Adding = false; return; };
-                Adding = true;
-                
-               await eventLogProcessing?.DbActualizationAsync();
-                await LoadData();
-                Adding = false;
-                Loading = !Loading;
-                IsAdditionSuccessful = true; 
-            }
-            catch (Exception e)
-            {
-                IsAdditionSuccessful = false;
-                AdditionErrorMessage = e?.InnerException?.Message ?? "";
-            }
+            var result = await Importer.DbActualizationAsync();
+            var summary = $"Прочитано: {result.Read}, добавлено: {result.Added}, пропущено: {result.Skipped}.";
+            if (result.Error is null)
+                ImportSummary = summary;
+            else
+                AdditionErrorMessage = $"Импорт завершился с ошибкой: {result.Error} {summary}";
+            await RefreshDataAsync();
         }
-
-        async Task LoadData()
+        catch (Exception ex)
         {
-            Loading = true;
-
-            try
-            {
-                await using (var context = DbContextFactory.CreateDbContext())
-                {
-                    EventsSuccessfulPrinting = await context.EventsSuccessfulPrinting
-                        .Include(e => e.SenderDevice)
-                         .Include(e => e.TargetPrinter)
-                          .ThenInclude(d => d.NetworkPrinter)
-                            .ThenInclude(np => np.PrinterModel)
-                              .ThenInclude(pm => pm.PaperSizes)
-                        .Include(e => e.Sender)
-                        .Include(e => e.SentPrintingFile)
-                         .ThenInclude(dn=>dn.Name)
-                        .OrderBy(record => record.DateTime).Reverse()
-                          .Take(50)
-                        .ToListAsync();
-                }
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Ошибка загрузки записей из базы данных : \n{e.Message} \n{e.InnerException}");
-            }
-
-
+            Logger.LogError(ex, "Не удалось начать импорт событий печати.");
+            AdditionErrorMessage = $"Не удалось импортировать события: {ex.Message}";
         }
+        finally
+        {
+            Importer.AddProgressChanged -= OnProgressChanged;
+            Adding = false;
+        }
+    }
 
+    private async Task LoadData()
+    {
+        if (Loading || Adding) return;
+        await RefreshDataAsync();
+    }
 
-      
+    private async Task RefreshDataAsync()
+    {
+        Loading = true;
+        try
+        {
+            await using var db = await ContextFactory.CreateDbContextAsync();
+            EventsSuccessfulPrinting = await db.EventsSuccessfulPrinting.AsNoTracking()
+                .Include(e => e.SenderDevice)
+                .Include(e => e.TargetPrinter).ThenInclude(p => p.NetworkPrinter)
+                .Include(e => e.Sender)
+                .Include(e => e.SentPrintingFile).ThenInclude(f => f.Name)
+                .OrderByDescending(e => e.DateTime).Take(50).ToListAsync();
+            if (!Adding) AdditionErrorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Не удалось загрузить события печати из основной БД.");
+            AdditionErrorMessage = "Основная БД недоступна, не настроена или её схема несовместима. Администратор может проверить подключение на странице /settings.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
 
+    public void Dispose()
+    {
+        SourceSelection.Changed -= SourceChanged;
+        Importer.AddProgressChanged -= OnProgressChanged;
     }
 }

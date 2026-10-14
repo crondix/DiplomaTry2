@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Routing
             {
                 await signInManager.SignOutAsync();
                 return TypedResults.LocalRedirect($"~/{returnUrl}");
-            });
+            }).RequireAuthorization();
 
             var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
 

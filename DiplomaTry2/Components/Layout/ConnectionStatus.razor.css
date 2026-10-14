@@ -1,0 +1,23 @@
+.connection-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: 5px 8px;
+    max-width: 100%;
+    border-radius: 6px;
+    background: #252b36;
+    color: #dce3ee;
+    font-size: .67rem;
+}
+
+.connection-status__dot {
+    width: .8rem;
+    height: .8rem;
+    flex: 0 0 .8rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, .65);
+}
+
+.connection-status__dot--online { background: #4ade80; }
+.connection-status__dot--offline { background: #f87171; }
+.connection-status__dot--pending { background: #a3a3a3; }

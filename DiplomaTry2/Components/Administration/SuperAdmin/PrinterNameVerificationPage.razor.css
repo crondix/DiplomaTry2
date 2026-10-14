@@ -1,0 +1,12 @@
+.model-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0; }
+.model-panel { border: 1px solid #ccd4df; border-radius: .5rem; padding: 1rem; margin: 1rem 0; background: #fff; }
+.model-panel h2 { font-size: 1.25rem; }
+.model-panel h3 { font-size: 1rem; }
+.model-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+.driver-lists { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem; }
+.driver-transfer { display: flex; flex-direction: column; gap: .6rem; justify-content: center; }
+.driver-lists ::deep .driver-list { height: 320px; }
+@media (max-width: 760px) {
+    .driver-lists, .model-fields { grid-template-columns: 1fr; }
+    .driver-transfer { flex-direction: row; }
+}

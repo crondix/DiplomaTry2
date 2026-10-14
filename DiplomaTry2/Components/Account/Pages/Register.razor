@@ -14,6 +14,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IWebHostEnvironment Environment
 
 <PageTitle>Register</PageTitle>
 
@@ -22,6 +23,10 @@
 <div class="row">
     <div class="col-md-4">
         <StatusMessage Message="@Message" />
+        @if (!Environment.IsDevelopment() && EmailSender is IdentityNoOpEmailSender)
+        {
+            <p class="alert alert-warning">Самостоятельная регистрация недоступна: отправка писем не настроена.</p>
+        }
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
             <h2>Create a new account.</h2>
@@ -42,7 +47,7 @@
                 <label for="confirm-password">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+            <button type="submit" class="w-100 btn btn-lg btn-primary" disabled="@(!Environment.IsDevelopment() && EmailSender is IdentityNoOpEmailSender)">Register</button>
         </EditForm>
     </div>
     <div class="col-md-6 col-md-offset-2">
@@ -67,6 +72,11 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
+        if (!Environment.IsDevelopment() && EmailSender is IdentityNoOpEmailSender)
+        {
+            identityErrors = [new IdentityError { Description = "Самостоятельная регистрация недоступна: отправка писем не настроена." }];
+            return;
+        }
         var user = CreateUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);

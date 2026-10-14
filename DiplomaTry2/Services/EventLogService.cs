@@ -48,7 +48,7 @@ namespace DiplomaTry2.Services
             }
         }
         /// <param name="remoteComputerName">Имя удаленного пк/сервера</param>
-        public async  Task<List<EventPrint307>?> Get307PrintEventsListAsync( string remoteComputerName= @"vm-print")
+        public async  Task<List<EventPrint307>?> Get307PrintEventsListAsync(string remoteComputerName)
         {
             
           
