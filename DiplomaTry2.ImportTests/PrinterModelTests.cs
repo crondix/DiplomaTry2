@@ -22,6 +22,9 @@ public sealed class PrinterModelTests
         var script = db.GetService<IMigrator>().GenerateScript("20260925010000_PrintEventImport", "20261014000000_PrinterDriverName");
         Assert.Contains("ADD [DriverName] nvarchar(max) NULL", script);
         Assert.DoesNotContain("DROP TABLE", script);
+        var characteristics = db.GetService<IMigrator>().GenerateScript("20261014000000_PrinterDriverName", "20261014010000_PrinterModelCharacteristics");
+        Assert.Contains("ADD [DeviceType] nvarchar(80) NULL", characteristics);
+        Assert.Contains("ADD [MaximumMonthlyVolume] int NULL", characteristics);
     }
 
     [Fact]
@@ -64,6 +67,31 @@ public sealed class PrinterModelTests
         await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(new() { Name = " hp m405DN " }));
         await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(new() { Name = " " }));
         await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(new() { Name = "Invalid", MaxCopyPerPrint = 0 }));
+    }
+
+    [Fact]
+    public async Task Card_characteristics_are_saved_edited_and_validated()
+    {
+        using var database = new TestDatabase();
+        var service = new PrinterModelService(database);
+        await service.SaveAsync(new()
+        {
+            Name = "Kyocera TASKalfa 3050ci", DeviceType = " МФУ лазерное ", DeviceFunctions = "копир, принтер, сканер, факс",
+            PrintTechnology = "лазерная", IsColor = true, MaximumPaperFormat = "A3", MonochromeResolution = "600x600 dpi",
+            RecommendedMonthlyVolume = 2000, MaximumMonthlyVolume = 20000, Interfaces = "Ethernet (RJ-45), USB", IsDuplexing = true
+        });
+        var listed = Assert.Single(await service.ListAsync());
+        var card = await service.GetAsync(listed.Id);
+        Assert.Equal("МФУ лазерное", card.DeviceType); Assert.Equal("A3", card.MaximumPaperFormat);
+        Assert.Equal("600x600 dpi", card.MonochromeResolution); Assert.Equal(2000, card.RecommendedMonthlyVolume);
+        Assert.Equal(20000, card.MaximumMonthlyVolume); Assert.Equal("Ethernet (RJ-45), USB", card.Interfaces);
+        Assert.Equal("копир, принтер, сканер, факс", card.DeviceFunctions); Assert.Equal("лазерная", card.PrintTechnology);
+        await service.SaveAsync(new() { Id = card.Id, Name = card.ModelName, Interfaces = " Wi-Fi ", DeviceType = " " });
+        var edited = await service.GetAsync(card.Id);
+        Assert.Equal("Wi-Fi", edited.Interfaces); Assert.Null(edited.DeviceType); Assert.Null(edited.MaximumMonthlyVolume);
+        await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(new() { Name = "Invalid", RecommendedMonthlyVolume = 3000, MaximumMonthlyVolume = 2000 }));
+        await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(new() { Name = "Invalid", MaximumMonthlyVolume = 0 }));
+        await Assert.ThrowsAsync<ValidationException>(() => service.SaveAsync(new() { Name = "Invalid", Interfaces = new string('x', 201) }));
     }
 
     [Fact]

@@ -18,29 +18,28 @@ public partial class PrinterNameVerificationPage
     private PrinterModelService catalog = default!;
     private PrinterModelDraft? draft;
     private PrinterModel? deleteModel;
+    private PrinterModel? cardModel;
     private int linkedPrinters;
     private string? error, message;
     private bool busy, showDrivers, reloadPending, modelsReady;
+    private bool addDialogVisible, editorVisible, cardVisible, deleteDialogVisible, settingsDialogVisible;
+    private bool AnyDialogOpen => addDialogVisible || editorVisible || cardVisible || deleteDialogVisible || settingsDialogVisible;
     private Dictionary<string, string> originalDrivers = [];
     private List<string> available = [], chosen = [];
     private IEnumerable<string> leftSelection = [], rightSelection = [];
     private string renamedName = "";
-    private string ColorChoice
-    {
-        get => draft?.IsColor switch { true => "true", false => "false", _ => "" };
-        set { if (draft is not null) draft.IsColor = ParseChoice(value); }
-    }
-    private string DuplexChoice
-    {
-        get => draft?.IsDuplexing switch { true => "true", false => "false", _ => "" };
-        set { if (draft is not null) draft.IsDuplexing = ParseChoice(value); }
-    }
-    private static bool? ParseChoice(string value) => value switch { "true" => true, "false" => false, _ => null };
 
     protected override async Task OnInitializedAsync()
     {
         Selection.Changed += SourceChanged;
         await RunAsync(ReloadAsync);
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try { await Preferences.LoadAsync(); }
+        catch (Microsoft.JSInterop.JSException) { error = "Не удалось прочитать настройки источника. Откройте настройки и повторите выбор."; }
+        await InvokeAsync(StateHasChanged);
     }
     private async Task ReloadAsync()
     {
@@ -66,7 +65,7 @@ public partial class PrinterNameVerificationPage
             while (reloadPending)
             {
                 reloadPending = false;
-                CloseDrivers(); draft = null; deleteModel = null; message = null;
+                CloseModelDialogs(); message = null;
                 try { await ReloadAsync(); }
                 catch (Exception ex) { error = $"Не удалось обновить справочник: {ex.Message}"; }
             }
@@ -75,29 +74,34 @@ public partial class PrinterNameVerificationPage
     }
     private void AddModel()
     {
-        deleteModel = null; error = null; message = null; draft = new();
+        CloseModelDialogs(); error = null; message = null; draft = new(); editorVisible = true;
     }
     private void EditModel(int id)
     {
-        var model = models.Single(m => m.Id == id);
-        deleteModel = null; error = null; message = null;
+        var model = cardModel?.Id == id ? cardModel : models.Single(m => m.Id == id);
+        CloseModelDialogs(); error = null; message = null;
         draft = new() { Id = id, Name = model.ModelName, IsColor = model.IsColor,
-            IsDuplexing = model.IsDuplexing, MaxCopyPerPrint = model.MaxCopyPerPrint };
+            IsDuplexing = model.IsDuplexing, MaxCopyPerPrint = model.MaxCopyPerPrint,
+            DeviceType = model.DeviceType, DeviceFunctions = model.DeviceFunctions, PrintTechnology = model.PrintTechnology,
+            MaximumPaperFormat = model.MaximumPaperFormat, MonochromeResolution = model.MonochromeResolution,
+            RecommendedMonthlyVolume = model.RecommendedMonthlyVolume, MaximumMonthlyVolume = model.MaximumMonthlyVolume,
+            Interfaces = model.Interfaces };
+        editorVisible = true;
     }
     private Task SaveModelAsync() => RunAsync(async () =>
     {
-        await catalog.SaveAsync(draft!); draft = null;
+        await catalog.SaveAsync(draft!); editorVisible = false; draft = null;
         await ReloadAsync(); message = "Модель сохранена.";
     });
     private Task ConfirmDeleteAsync(int id) => RunAsync(async () =>
     {
         var model = models.Single(m => m.Id == id);
         var count = await catalog.CountPrintersAsync(id);
-        draft = null; linkedPrinters = count; deleteModel = model;
+        CloseModelDialogs(); linkedPrinters = count; deleteModel = model; deleteDialogVisible = true;
     });
     private Task DeleteModelAsync() => RunAsync(async () =>
     {
-        await catalog.DeleteAsync(deleteModel!.Id); deleteModel = null;
+        await catalog.DeleteAsync(deleteModel!.Id); deleteDialogVisible = false; deleteModel = null;
         await ReloadAsync(); message = "Модель удалена. Принтеры сохранены.";
     });
     private Task FetchDriversAsync() => RunAsync(async () =>
@@ -111,7 +115,6 @@ public partial class PrinterNameVerificationPage
             .DistinctBy(PrinterModelService.NameKey).Where(n => !keys.Contains(PrinterModelService.NameKey(n)))
             .Order(StringComparer.OrdinalIgnoreCase).ToList();
         chosen = []; leftSelection = []; rightSelection = []; originalDrivers = []; showDrivers = true;
-        message = available.Count == 0 ? "Новых названий драйверов нет." : null;
     });
     private void MoveRight()
     {
@@ -148,16 +151,37 @@ public partial class PrinterNameVerificationPage
     private Task SaveSelectedAsync() => RunAsync(async () =>
     {
         var added = await catalog.AddSelectedAsync(chosen);
-        await ReloadAsync(); CloseDrivers();
+        await ReloadAsync(); CloseAddDialog();
         message = $"Моделей добавлено: {added}. Характеристики можно заполнить через редактирование.";
     });
     private void CloseDrivers()
     {
         showDrivers = false; available = []; chosen = []; leftSelection = []; rightSelection = []; originalDrivers = [];
     }
+    private void OpenAddDialog()
+    {
+        if (busy) return;
+        CloseModelDialogs(); settingsDialogVisible = false; error = null; message = null; addDialogVisible = true;
+    }
+    private void OpenSettings()
+    {
+        if (busy) return;
+        CloseModelDialogs(); error = null; settingsDialogVisible = true;
+    }
+    private void CloseAddDialog() { addDialogVisible = false; CloseDrivers(); }
+    private void CloseModelDialogs()
+    {
+        addDialogVisible = false; editorVisible = false; cardVisible = false; deleteDialogVisible = false;
+        draft = null; deleteModel = null; cardModel = null; CloseDrivers();
+    }
+    private Task ShowCardAsync(int id) => RunAsync(async () =>
+    {
+        var model = await catalog.GetAsync(id);
+        CloseModelDialogs(); cardModel = model; cardVisible = true;
+    });
     private void SourceChanged() => _ = InvokeAsync(async () =>
     {
-        CloseDrivers(); draft = null; deleteModel = null; models = []; modelsReady = false;
+        CloseModelDialogs(); models = []; modelsReady = false;
         if (busy) reloadPending = true;
         else await RunAsync(ReloadAsync);
         StateHasChanged();

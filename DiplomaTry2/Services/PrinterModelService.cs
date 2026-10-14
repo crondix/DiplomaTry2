@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DiplomaTry2.Services;
 
-public sealed class PrinterModelDraft
+public sealed class PrinterModelDraft : IValidatableObject
 {
     public int Id { get; set; }
     [Required(ErrorMessage = "Укажите название модели.")]
@@ -14,6 +14,19 @@ public sealed class PrinterModelDraft
     public short? MaxCopyPerPrint { get; set; }
     public bool? IsColor { get; set; }
     public bool? IsDuplexing { get; set; }
+    [StringLength(80, ErrorMessage = "Тип устройства: не более 80 символов.")] public string? DeviceType { get; set; }
+    [StringLength(200, ErrorMessage = "Функции устройства: не более 200 символов.")] public string? DeviceFunctions { get; set; }
+    [StringLength(80, ErrorMessage = "Технология печати: не более 80 символов.")] public string? PrintTechnology { get; set; }
+    [StringLength(40, ErrorMessage = "Формат бумаги: не более 40 символов.")] public string? MaximumPaperFormat { get; set; }
+    [StringLength(100, ErrorMessage = "Разрешение печати: не более 100 символов.")] public string? MonochromeResolution { get; set; }
+    [Range(1, int.MaxValue, ErrorMessage = "Месячный объём должен быть положительным целым числом.")] public int? RecommendedMonthlyVolume { get; set; }
+    [Range(1, int.MaxValue, ErrorMessage = "Месячный объём должен быть положительным целым числом.")] public int? MaximumMonthlyVolume { get; set; }
+    [StringLength(200, ErrorMessage = "Интерфейсы: не более 200 символов.")] public string? Interfaces { get; set; }
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (RecommendedMonthlyVolume.HasValue && MaximumMonthlyVolume.HasValue && RecommendedMonthlyVolume > MaximumMonthlyVolume)
+            yield return new ValidationResult("Рекомендуемый месячный объём не может превышать максимальный.", [nameof(RecommendedMonthlyVolume)]);
+    }
 }
 
 public sealed class PrinterModelService(IDbContextFactory<ApplicationDbContext> factory,
@@ -27,6 +40,13 @@ public sealed class PrinterModelService(IDbContextFactory<ApplicationDbContext> 
     {
         await using var db = await factory.CreateDbContextAsync();
         return await db.PrinterModels.AsNoTracking().OrderBy(m => m.ModelName).ToListAsync();
+    }
+
+    public async Task<PrinterModel> GetAsync(int id)
+    {
+        await using var db = await factory.CreateDbContextAsync();
+        return await db.PrinterModels.AsNoTracking().Include(m => m.PaperSizes).SingleOrDefaultAsync(m => m.Id == id)
+            ?? throw new InvalidOperationException("Модель уже удалена. Обновите список.");
     }
 
     public async Task SaveAsync(PrinterModelDraft draft)
@@ -44,6 +64,14 @@ public sealed class PrinterModelService(IDbContextFactory<ApplicationDbContext> 
         model.IsColor = draft.IsColor;
         model.IsDuplexing = draft.IsDuplexing;
         model.MaxCopyPerPrint = draft.MaxCopyPerPrint;
+        model.DeviceType = OptionalText(draft.DeviceType);
+        model.DeviceFunctions = OptionalText(draft.DeviceFunctions);
+        model.PrintTechnology = OptionalText(draft.PrintTechnology);
+        model.MaximumPaperFormat = OptionalText(draft.MaximumPaperFormat);
+        model.MonochromeResolution = OptionalText(draft.MonochromeResolution);
+        model.RecommendedMonthlyVolume = draft.RecommendedMonthlyVolume;
+        model.MaximumMonthlyVolume = draft.MaximumMonthlyVolume;
+        model.Interfaces = OptionalText(draft.Interfaces);
         if (draft.Id == 0) db.PrinterModels.Add(model);
         await db.SaveChangesAsync();
     }
@@ -91,4 +119,5 @@ public sealed class PrinterModelService(IDbContextFactory<ApplicationDbContext> 
         printer.PrinterModelId = modelId;
         await db.SaveChangesAsync();
     }
+    private static string? OptionalText(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

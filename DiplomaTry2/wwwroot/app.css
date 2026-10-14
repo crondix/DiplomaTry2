@@ -219,6 +219,20 @@ body.table-column-resizing * {
     gap: .4rem;
 }
 
+.printer-model-dialog-header, .printer-model-dialog-footer { background: #202328; color: #fff; border-color: #606873; }
+.printer-model-dialog-body { background: #151719; color: #f3f3f3; }
+.printer-model-dialog-body a { color: #c7defd; }
+.printer-model-dialog-body .btn, .printer-model-dialog-footer .btn { border-radius: 999px; }
+.printer-model-dialog-body .btn-primary, .printer-model-dialog-body .btn-outline-primary,
+.printer-model-dialog-footer .btn-primary { background: #293b51; color: #fff; border-color: #a9c7ee; }
+.printer-model-dialog-body .btn-primary:hover, .printer-model-dialog-body .btn-outline-primary:hover,
+.printer-model-dialog-footer .btn-primary:hover { background: #3c5675; }
+.printer-model-dialog-body .btn-outline-secondary, .printer-model-dialog-footer .btn-outline-secondary { color: #f3f3f3; border-color: #9ca3ad; }
+.printer-model-dialog-body .btn-outline-secondary:hover, .printer-model-dialog-footer .btn-outline-secondary:hover { background: #4a515b; }
+.printer-model-dialog-footer .btn-danger { color: #fff; background: #a32e3f; border-color: #ed8793; }
+.printer-model-dialog-body .btn:focus-visible, .printer-model-dialog-footer .btn:focus-visible { outline: 3px solid #b3d3fa; outline-offset: 3px; }
+.printer-model-dialog-body .validation-errors { color: #ffb7bd; }
+
 .app-shell__content .print-grid__row-actions .btn-outline-danger {
     color: #ffb7bd;
     border-color: #ed8793;

@@ -43,6 +43,14 @@ namespace DiplomaModels
        public short? MaxCopyPerPrint {  get; set; }
        public bool? IsDuplexing {  get; set; }
        public bool? IsColor {  get; set; }
+        [MaxLength(80)] public string? DeviceType { get; set; }
+        [MaxLength(200)] public string? DeviceFunctions { get; set; }
+        [MaxLength(80)] public string? PrintTechnology { get; set; }
+        [MaxLength(40)] public string? MaximumPaperFormat { get; set; }
+        [MaxLength(100)] public string? MonochromeResolution { get; set; }
+        public int? RecommendedMonthlyVolume { get; set; }
+        public int? MaximumMonthlyVolume { get; set; }
+        [MaxLength(200)] public string? Interfaces { get; set; }
         public virtual ICollection<PaperSize>? PaperSizes { get; set; }
 
     }

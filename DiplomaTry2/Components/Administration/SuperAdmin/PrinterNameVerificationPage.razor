@@ -7,86 +7,99 @@
 @inject PrinterModelService ModelService
 @inject IPrinterSource PrinterSource
 @inject PrintSourceSelection Selection
+@inject PrintSourcePreferences Preferences
 @inject ILogger<PrinterNameVerificationPage> Logger
 
 <PageTitle>Модели принтеров</PageTitle>
-<PrintDataFrame Title="Модели принтеров" Description="Справочник реальных моделей и их характеристик.">
-    <AuthorizeView Roles="Admin">
-        <Authorized>
-            <PrintSourceSwitcher />
-            <div class="model-actions">
-                <button class="btn btn-primary" disabled="@(busy || !modelsReady)" @onclick="AddModel">Добавить модель</button>
-                <button class="btn btn-outline-primary" disabled="@busy" @onclick="FetchDriversAsync">Получить названия с сервера печати</button>
-            </div>
-        </Authorized>
-    </AuthorizeView>
-    @if (error is not null) { <p class="alert alert-danger" role="alert">@error</p> }
-    @if (message is not null) { <p class="alert alert-success" role="status">@message</p> }
-    @if (busy) { <p role="status">Выполняется операция…</p> }
-    <button class="btn btn-outline-secondary btn-sm" disabled="@busy" @onclick="() => RunAsync(ReloadAsync)">Обновить список</button>
-    @if (draft is not null)
-    {
-        <section class="model-panel" aria-labelledby="model-editor-title">
-            <h2 id="model-editor-title">@(draft.Id == 0 ? "Добавление модели" : "Редактирование модели")</h2>
-            <EditForm Model="draft" OnValidSubmit="SaveModelAsync" FormName="printer-model-edit">
-                <DataAnnotationsValidator /><ValidationSummary />
-                <fieldset disabled="@busy">
-                    <label for="model-name">Название модели</label>
-                    <InputText id="model-name" class="form-control" @bind-Value="draft.Name" />
-                    <div class="model-fields">
-                        <div><label for="model-color">Цветная печать</label>
-                            <InputSelect TValue="string" id="model-color" class="form-select" @bind-Value="ColorChoice">
-                                <option value="">Не указано</option><option value="true">Да</option><option value="false">Нет</option>
-                            </InputSelect>
-                        </div>
-                        <div><label for="model-duplex">Двусторонняя печать</label>
-                            <InputSelect TValue="string" id="model-duplex" class="form-select" @bind-Value="DuplexChoice">
-                                <option value="">Не указано</option><option value="true">Да</option><option value="false">Нет</option>
-                            </InputSelect>
-                        </div>
-                        <div><label for="model-copies">Максимум копий за печать</label>
-                            <InputNumber id="model-copies" class="form-control" min="1" max="32767" @bind-Value="draft.MaxCopyPerPrint" />
-                        </div>
-                    </div>
-                    <div class="model-actions">
-                        <button type="submit" class="btn btn-primary">Сохранить</button>
-                        <button type="button" class="btn btn-outline-secondary" @onclick="() => draft = null">Отмена</button>
-                    </div>
-                </fieldset>
-            </EditForm>
-        </section>
-    }
-    @if (deleteModel is not null)
-    {
-        <section class="model-panel" role="alertdialog" aria-labelledby="delete-title" aria-describedby="delete-description">
-            <h2 id="delete-title">Подтверждение удаления</h2>
-            <p id="delete-description">Удалить модель «@deleteModel.ModelName»? Принтеров с этой моделью: @linkedPrinters.
-                Принтеры сохранятся, их привязка к модели будет очищена.</p>
-            <div class="model-actions">
-                <button class="btn btn-danger" disabled="@busy" @onclick="DeleteModelAsync">Удалить модель</button>
-                <button class="btn btn-outline-secondary" disabled="@busy" @onclick="() => deleteModel = null">Отмена</button>
-            </div>
-        </section>
-    }
-    @if (showDrivers)
-    {
-        <section class="model-panel" aria-labelledby="driver-title">
-            <h2 id="driver-title">Создание моделей из названий драйверов</h2>
-            <p>Перенесите подходящие названия вправо. Универсальные драйверы оставьте слева. Модели создаются только после нажатия «Добавить выбранные модели».</p>
-            <fieldset disabled="@busy">
+<PrintDataFrame Title="Модели принтеров" Description="Справочник реальных моделей и их характеристик." SettingsRequested="OpenSettings">
+    <RightActions>
+        <AuthorizeView Roles="Admin">
+            <button type="button" class="print-data-frame__tile" disabled="@busy" @onclick="OpenAddDialog">
+                <img src="images/Brushed%20Chrome%20Plus%20Button.png" alt="" />
+                <span>Добавить модели</span>
+            </button>
+        </AuthorizeView>
+    </RightActions>
+    <ChildContent>
+        @if (error is not null && !AnyDialogOpen) { <p class="alert alert-danger" role="alert">@error</p> }
+        @if (message is not null) { <p class="alert alert-success" role="status">@message</p> }
+        <div class="model-list-toolbar">
+            <p>Нажмите название модели, чтобы открыть карточку.</p>
+            <button class="btn btn-outline-secondary btn-sm" disabled="@busy" @onclick="() => RunAsync(ReloadAsync)">Обновить список</button>
+        </div>
+        @if (busy) { <p role="status">Выполняется операция…</p> }
+        @if (!busy && models.Count == 0) { <p>Сохранённых моделей пока нет.</p> }
+        <div class="print-data-frame__table-wrap">
+            <PersistentGrid TableKey="printer-models" Label="Модели принтеров" Items="models" Columns="ModelColumns" RowSelector="ModelRow" CellTemplateField="Name">
+                <CellTemplate Context="row">
+                    <button type="button" class="model-name-link" disabled="@busy" @onclick="() => ShowCardAsync(row.Id)">@row.Name</button>
+                </CellTemplate>
+                <RowActions Context="row">
+                    <AuthorizeView Roles="Admin" Context="modelAuthorization">
+                        <button class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick="() => EditModel(row.Id)">Редактировать</button>
+                        <button class="btn btn-outline-danger btn-sm" disabled="@busy" @onclick="() => ConfirmDeleteAsync(row.Id)">Удалить</button>
+                    </AuthorizeView>
+                </RowActions>
+            </PersistentGrid>
+        </div>
+    </ChildContent>
+</PrintDataFrame>
+
+<DxPopup @bind-Visible="deleteDialogVisible" HeaderText="Подтверждение удаления" Width="95vw" MaxWidth="min(560px, calc(100vw - 4rem))" MaxHeight="90vh"
+         ShowFooter="true" Scrollable="true" CloseOnOutsideClick="false" CloseOnEscape="@(!busy)" ShowCloseButton="@(!busy)"
+         HeaderCssClass="printer-model-dialog-header" BodyCssClass="printer-model-dialog-body" FooterCssClass="printer-model-dialog-footer">
+    <BodyContentTemplate Context="popupBody">
+        @if (deleteModel is not null)
+        {
+            <p>Удалить модель <strong>«@deleteModel.ModelName»</strong>?</p>
+            <p>Принтеров с этой моделью: @linkedPrinters. Принтеры сохранятся, их привязка к модели будет очищена.</p>
+        }
+        @if (error is not null) { <p class="model-dialog-error" role="alert">@error</p> }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <div class="model-actions">
+            <button type="button" class="btn btn-outline-secondary" disabled="@busy" @onclick="() => deleteDialogVisible = false">Отмена</button>
+            <button type="button" class="btn btn-danger" disabled="@busy" @onclick="DeleteModelAsync">@(busy ? "Удаление…" : "Удалить модель")</button>
+        </div>
+    </FooterContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="addDialogVisible" HeaderText="Добавить модели" Width="95vw" MaxWidth="min(1100px, calc(100vw - 4rem))" MaxHeight="90vh"
+         ShowFooter="true" Scrollable="true" CloseOnOutsideClick="false" CloseOnEscape="@(!busy)" ShowCloseButton="@(!busy)"
+         HeaderCssClass="printer-model-dialog-header" BodyCssClass="printer-model-dialog-body" FooterCssClass="printer-model-dialog-footer">
+    <BodyContentTemplate Context="popupBody">
+        <div class="model-add-options">
+            <section>
+                <h3>Ручное добавление</h3>
+                <p>Укажите название реальной модели и её характеристики.</p>
+                <button type="button" class="btn btn-primary" disabled="@(busy || !modelsReady)" @onclick="AddModel">Добавить модель вручную</button>
+            </section>
+            <section>
+                <h3>Из названий драйверов</h3>
+                <p>Получите названия из выбранного источника и отберите подходящие.</p>
+                <button type="button" class="btn btn-outline-primary" disabled="@busy" @onclick="FetchDriversAsync">@(busy ? "Получение названий…" : "Получить названия с сервера печати")</button>
+            </section>
+        </div>
+        @if (error is not null) { <p class="model-dialog-error" role="alert">@error</p> }
+        @if (showDrivers)
+        {
+            <div class="model-driver-picker">
+                <h3>Создание моделей из названий драйверов</h3>
+                <p>Перенесите подходящие названия вправо. Универсальные драйверы оставьте слева.</p>
+                @if (available.Count == 0 && chosen.Count == 0) { <p role="status">Новых названий драйверов нет.</p> }
                 <div class="driver-lists">
                     <section aria-labelledby="available-drivers-title">
-                        <h3 id="available-drivers-title">Названия драйверов (@available.Count)</h3>
-                        <DxListBox TData="string" TValue="string" Data="available" SelectionMode="ListBoxSelectionMode.Multiple"
+                        <h4 id="available-drivers-title">Названия драйверов (@available.Count)</h4>
+                        <DxListBox TData="string" TValue="string" Data="available" SelectionMode="ListBoxSelectionMode.Multiple" Enabled="@(!busy)"
                                    ShowCheckboxes="true" ShowSelectAllCheckbox="true" @bind-Values="leftSelection" CssClass="driver-list" />
                     </section>
                     <div class="driver-transfer">
-                        <button class="btn btn-outline-primary" disabled="@(busy || !leftSelection.Any())" @onclick="MoveRight">Выбрать →</button>
-                        <button class="btn btn-outline-secondary" disabled="@(busy || !rightSelection.Any())" @onclick="MoveLeft">← Вернуть</button>
+                        <button type="button" class="btn btn-outline-primary" disabled="@(busy || !leftSelection.Any())" @onclick="MoveRight">Выбрать →</button>
+                        <button type="button" class="btn btn-outline-secondary" disabled="@(busy || !rightSelection.Any())" @onclick="MoveLeft">← Вернуть</button>
                     </div>
                     <section aria-labelledby="chosen-drivers-title">
-                        <h3 id="chosen-drivers-title">Выбрано для создания моделей (@chosen.Count)</h3>
-                        <DxListBox TData="string" TValue="string" Data="chosen" SelectionMode="ListBoxSelectionMode.Multiple"
+                        <h4 id="chosen-drivers-title">Выбрано для создания моделей (@chosen.Count)</h4>
+                        <DxListBox TData="string" TValue="string" Data="chosen" SelectionMode="ListBoxSelectionMode.Multiple" Enabled="@(!busy)"
                                    ShowCheckboxes="true" ShowSelectAllCheckbox="true" Values="rightSelection" ValuesChanged="RightSelectionChanged" CssClass="driver-list" />
                     </section>
                 </div>
@@ -94,26 +107,71 @@
                 {
                     <label for="selected-model-name">Исправить название выбранной модели</label>
                     <div class="model-actions">
-                        <input id="selected-model-name" class="form-control" @bind="renamedName" />
-                        <button class="btn btn-outline-primary" @onclick="RenameSelected">Применить название</button>
+                        <input id="selected-model-name" class="form-control" disabled="@busy" @bind="renamedName" />
+                        <button type="button" class="btn btn-outline-primary" disabled="@busy" @onclick="RenameSelected">Применить название</button>
                     </div>
                 }
-                <div class="model-actions">
-                    <button class="btn btn-primary" disabled="@(busy || chosen.Count == 0)" @onclick="SaveSelectedAsync">Добавить выбранные модели</button>
-                    <button class="btn btn-outline-secondary" disabled="@busy" @onclick="CloseDrivers">Закрыть</button>
-                </div>
-            </fieldset>
-        </section>
-    }
-    @if (!busy && models.Count == 0) { <p>Сохранённых моделей пока нет.</p> }
-    <div class="print-data-frame__table-wrap">
-        <PersistentGrid TableKey="printer-models" Label="Модели принтеров" Items="models" Columns="ModelColumns" RowSelector="ModelRow">
-            <RowActions Context="row">
-                <AuthorizeView Roles="Admin" Context="modelAuthorization">
-                    <button class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick="() => EditModel(row.Id)">Редактировать</button>
-                    <button class="btn btn-outline-danger btn-sm" disabled="@busy" @onclick="() => ConfirmDeleteAsync(row.Id)">Удалить</button>
-                </AuthorizeView>
-            </RowActions>
-        </PersistentGrid>
-    </div>
-</PrintDataFrame>
+            </div>
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <div class="model-actions">
+            <button type="button" class="btn btn-outline-secondary" disabled="@busy" @onclick="CloseAddDialog">Закрыть</button>
+            @if (showDrivers)
+            {
+                <button type="button" class="btn btn-primary" disabled="@(busy || chosen.Count == 0)" @onclick="SaveSelectedAsync">Добавить выбранные модели</button>
+            }
+        </div>
+    </FooterContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="editorVisible" HeaderText="@(draft?.Id == 0 ? "Добавление модели" : "Редактирование модели")" Width="95vw" MaxWidth="min(1000px, calc(100vw - 4rem))" MaxHeight="90vh"
+         ShowFooter="true" Scrollable="true" CloseOnOutsideClick="false" CloseOnEscape="@(!busy)" ShowCloseButton="@(!busy)"
+         HeaderCssClass="printer-model-dialog-header" BodyCssClass="printer-model-dialog-body" FooterCssClass="printer-model-dialog-footer">
+    <BodyContentTemplate Context="popupBody">
+        @if (editorVisible && draft is not null)
+        {
+            <EditForm id="model-edit-form" Model="draft" OnValidSubmit="SaveModelAsync" FormName="printer-model-edit">
+                <DataAnnotationsValidator /><ValidationSummary />
+                <fieldset class="model-fieldset" disabled="@busy"><PrinterModelCard Draft="draft" /></fieldset>
+            </EditForm>
+        }
+        @if (error is not null) { <p class="model-dialog-error" role="alert">@error</p> }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <div class="model-actions">
+            <button type="button" class="btn btn-outline-secondary" disabled="@busy" @onclick="() => editorVisible = false">Отмена</button>
+            <button type="submit" form="model-edit-form" class="btn btn-primary" disabled="@busy">@(busy ? "Сохранение…" : "Сохранить")</button>
+        </div>
+    </FooterContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="cardVisible" HeaderText="Карточка модели" Width="95vw" MaxWidth="min(1000px, calc(100vw - 4rem))" MaxHeight="90vh" ShowFooter="true" Scrollable="true" CloseOnOutsideClick="false"
+         HeaderCssClass="printer-model-dialog-header" BodyCssClass="printer-model-dialog-body" FooterCssClass="printer-model-dialog-footer">
+    <BodyContentTemplate Context="popupBody">
+        @if (cardVisible && cardModel is not null) { <PrinterModelCard Model="cardModel" /> }
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <div class="model-actions">
+            <button type="button" class="btn btn-outline-secondary" @onclick="() => cardVisible = false">Закрыть</button>
+            <AuthorizeView Roles="Admin" Context="cardAuthorization">
+                @if (cardModel is not null) { <button type="button" class="btn btn-primary" @onclick="() => EditModel(cardModel.Id)">Редактировать</button> }
+            </AuthorizeView>
+        </div>
+    </FooterContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="settingsDialogVisible" HeaderText="Настройки моделей принтеров" Width="95vw" MaxWidth="min(760px, calc(100vw - 4rem))" MaxHeight="90vh" ShowFooter="true" Scrollable="true" CloseOnOutsideClick="false"
+         HeaderCssClass="printer-model-dialog-header" BodyCssClass="printer-model-dialog-body" FooterCssClass="printer-model-dialog-footer">
+    <BodyContentTemplate Context="popupBody">
+        @if (settingsDialogVisible)
+        {
+            <AuthorizeView Roles="Admin" Context="settingsAuthorization">
+                <Authorized><PrintSourceSwitcher /></Authorized>
+                <NotAuthorized><p>Источник данных: @(Selection.IsFixture ? "Тестовые данные" : $"Сервер {Selection.ServerName}"). Изменение источника доступно администратору.</p></NotAuthorized>
+            </AuthorizeView>
+            @if (error is not null) { <p class="model-dialog-error" role="alert">@error</p> }
+        }
+    </BodyContentTemplate>
+    <FooterContentTemplate><button type="button" class="btn btn-outline-secondary" @onclick="() => settingsDialogVisible = false">Закрыть</button></FooterContentTemplate>
+</DxPopup>

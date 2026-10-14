@@ -1,0 +1,102 @@
+@using DiplomaModels
+@using DiplomaTry2.Services
+
+<article class="model-card">
+    <h2>@(Draft is not null ? (string.IsNullOrWhiteSpace(Draft.Name) ? "Новая модель" : Draft.Name) : Model?.ModelName)</h2>
+    <div class="model-card__layout">
+        <figure class="model-card__image">
+            <img src="images/menu/printer_models.png" alt="" />
+            <figcaption>Модель принтера</figcaption>
+        </figure>
+        <div class="model-card__characteristics">
+            <section aria-labelledby="model-general-title">
+                <h3 id="model-general-title">Общие характеристики</h3>
+                <dl class="model-card__specs">
+                    <div class="model-card__spec">
+                        <dt>@if (Draft is not null) { <label for="model-name">Название модели</label> } else { <span>Название модели</span> }</dt>
+                        <dd>@if (Draft is not null) { <InputText id="model-name" class="form-control" @bind-Value="Draft.Name" /> } else { @Model?.ModelName }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt><label for="model-type">Тип устройства</label></dt>
+                        <dd>@if (Draft is not null) { <InputText id="model-type" class="form-control" maxlength="80" placeholder="Например, лазерное МФУ" @bind-Value="Draft.DeviceType" /> } else { @Text(Model?.DeviceType) }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt><label for="model-functions">Функции устройства</label></dt>
+                        <dd>@if (Draft is not null) { <InputText id="model-functions" class="form-control" maxlength="200" placeholder="Принтер, сканер, копир, факс" @bind-Value="Draft.DeviceFunctions" /> } else { @Text(Model?.DeviceFunctions) }</dd>
+                    </div>
+                </dl>
+            </section>
+            <section aria-labelledby="model-print-title">
+                <h3 id="model-print-title">Принтер</h3>
+                <dl class="model-card__specs">
+                    <div class="model-card__spec">
+                        <dt><label for="model-technology">Технология печати</label></dt>
+                        <dd>@if (Draft is not null) { <InputText id="model-technology" class="form-control" maxlength="80" placeholder="Лазерная, струйная…" @bind-Value="Draft.PrintTechnology" /> } else { @Text(Model?.PrintTechnology) }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt>@if (Draft is not null) { <label for="model-color">Цветная печать</label> } else { <span>Цветная печать</span> }</dt>
+                        <dd>@if (Draft is not null) {
+                            <InputSelect TValue="string" id="model-color" class="form-select" @bind-Value="ColorChoice">
+                                <option value="">Не указано</option><option value="true">Да</option><option value="false">Нет</option>
+                            </InputSelect>
+                        } else { @YesNo(Model?.IsColor) }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt><label for="model-format">Максимальный формат бумаги</label></dt>
+                        <dd>@if (Draft is not null) { <InputText id="model-format" class="form-control" maxlength="40" placeholder="Например, A3" @bind-Value="Draft.MaximumPaperFormat" /> } else { @Text(Model?.MaximumPaperFormat) }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt><label for="model-resolution">Максимальное разрешение чёрно-белой печати</label></dt>
+                        <dd>@if (Draft is not null) { <InputText id="model-resolution" class="form-control" maxlength="100" placeholder="Например, 600 × 600 dpi" @bind-Value="Draft.MonochromeResolution" /> } else { @Text(Model?.MonochromeResolution) }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt><label for="model-recommended-volume">Рекомендуемый месячный объём, стр.</label></dt>
+                        <dd>@if (Draft is not null) { <InputNumber id="model-recommended-volume" class="form-control" min="1" @bind-Value="Draft.RecommendedMonthlyVolume" /> } else { @(Model?.RecommendedMonthlyVolume?.ToString("N0") ?? "Не указано") }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt><label for="model-maximum-volume">Максимальный месячный объём, стр.</label></dt>
+                        <dd>@if (Draft is not null) { <InputNumber id="model-maximum-volume" class="form-control" min="1" @bind-Value="Draft.MaximumMonthlyVolume" /> } else { @(Model?.MaximumMonthlyVolume?.ToString("N0") ?? "Не указано") }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt>@if (Draft is not null) { <label for="model-duplex">Автоматическая двусторонняя печать</label> } else { <span>Автоматическая двусторонняя печать</span> }</dt>
+                        <dd>@if (Draft is not null) {
+                            <InputSelect TValue="string" id="model-duplex" class="form-select" @bind-Value="DuplexChoice">
+                                <option value="">Не указано</option><option value="true">Да</option><option value="false">Нет</option>
+                            </InputSelect>
+                        } else { @YesNo(Model?.IsDuplexing) }</dd>
+                    </div>
+                    <div class="model-card__spec">
+                        <dt>@if (Draft is not null) { <label for="model-copies">Максимум копий за печать</label> } else { <span>Максимум копий за печать</span> }</dt>
+                        <dd>@if (Draft is not null) { <InputNumber id="model-copies" class="form-control" min="1" max="32767" @bind-Value="Draft.MaxCopyPerPrint" /> }
+                            else { @(Model?.MaxCopyPerPrint?.ToString() ?? "Не указано") }</dd>
+                    </div>
+                    @if (Draft is null)
+                    {
+                        <div class="model-card__spec"><dt>Форматы бумаги</dt><dd>@PaperFormats</dd></div>
+                    }
+                </dl>
+            </section>
+            <section aria-labelledby="model-interfaces-title">
+                <h3 id="model-interfaces-title">Интерфейсы</h3>
+                <dl class="model-card__specs">
+                    <div class="model-card__spec">
+                        <dt><label for="model-interfaces">Подключение</label></dt>
+                        <dd>@if (Draft is not null) { <InputText id="model-interfaces" class="form-control" maxlength="200" placeholder="Ethernet (RJ-45), USB, Wi-Fi…" @bind-Value="Draft.Interfaces" /> } else { @Text(Model?.Interfaces) }</dd>
+                    </div>
+                </dl>
+            </section>
+        </div>
+    </div>
+</article>
+
+@code {
+    [Parameter] public PrinterModel? Model { get; set; }
+    [Parameter] public PrinterModelDraft? Draft { get; set; }
+    private static string YesNo(bool? value) => value switch { true => "Да", false => "Нет", _ => "Не указано" };
+    private static string Text(string? value) => string.IsNullOrWhiteSpace(value) ? "Не указано" : value;
+    private string PaperFormats => Model?.PaperSizes is { Count: > 0 } sizes ? string.Join(", ", sizes.OrderBy(p => p.Name).Select(p => p.Name)) : "Не указано";
+    private string ColorChoice { get => Choice(Draft?.IsColor); set { if (Draft is not null) Draft.IsColor = ParseChoice(value); } }
+    private string DuplexChoice { get => Choice(Draft?.IsDuplexing); set { if (Draft is not null) Draft.IsDuplexing = ParseChoice(value); } }
+    private static string Choice(bool? value) => value switch { true => "true", false => "false", _ => "" };
+    private static bool? ParseChoice(string value) => value switch { "true" => true, "false" => false, _ => null };
+}

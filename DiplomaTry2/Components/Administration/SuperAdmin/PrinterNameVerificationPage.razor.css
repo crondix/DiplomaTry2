@@ -1,23 +1,29 @@
-.model-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0; }
-.model-panel { min-width: 0; border: 1px solid rgba(255,255,255,.3); border-radius: 12px; padding: 1.25rem; margin: 1rem 0; background: rgba(20,22,25,.94); color: #f3f3f3; }
-.model-panel h2 { font-size: 1.25rem; color: #fff; margin: 0 0 1rem; }
-.model-panel h3 { font-size: 1rem; color: #fff; margin: 0 0 .75rem; line-height: 1.4; }
-.model-panel p { color: #e3e3e3; line-height: 1.5; }
-.model-panel label { display: block; margin-bottom: .4rem; color: #f3f3f3; }
-.model-panel fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
-.model-panel ::deep .form-control, .model-panel ::deep .form-select { min-width: 0; width: 100%; background-color: #292d32; border: 1px solid #737b86; color: #fff; border-radius: .4rem; }
-.model-panel ::deep .form-control:focus, .model-panel ::deep .form-select:focus { border-color: #b3d3fa; }
-.model-panel ::deep .validation-message, .model-panel ::deep .validation-errors { color: #ffb7bd; }
-.model-panel .btn-outline-secondary { color: #eee; border-color: #9ca3ad; }
-.model-panel .btn-outline-secondary:hover { color: #fff; background: #4a515b; }
-.model-panel .btn-danger { color: #fff; background: #a32e3f; border-color: #ed8793; }
-.model-panel .btn:disabled { opacity: .55; }
-.model-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
-.driver-lists { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem; }
-.driver-transfer { display: flex; flex-direction: column; gap: .6rem; justify-content: center; }
+.model-list-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem; margin: 1rem 0; }
+.model-list-toolbar p { margin: 0; font-size: .9rem; }
+.model-name-link { padding: 0; border: 0; background: transparent; color: #c7defd; text-align: left; text-decoration: underline; text-underline-offset: .2em; overflow-wrap: anywhere; font: inherit; cursor: pointer; }
+.model-name-link:hover { color: #fff; }
+.model-name-link:focus-visible { outline: 2px solid #b3d3fa; outline-offset: 3px; }
+.model-name-link:disabled { opacity: .6; cursor: default; }
+.model-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: .6rem; margin: 0; }
+.model-add-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.model-add-options section { border: 1px solid #606873; border-radius: 10px; padding: 1.1rem; background: rgba(255,255,255,.04); }
+.model-add-options h3, .model-driver-picker h3 { font-size: 1.05rem; margin: 0 0 .65rem; color: #fff; }
+.model-add-options p, .model-driver-picker p { color: #d5dbe3; line-height: 1.5; }
+.model-add-options .btn { max-width: 100%; white-space: normal; }
+.model-driver-picker { border-top: 1px solid #606873; margin-top: 1.25rem; padding-top: 1.25rem; }
+.model-driver-picker label { display: block; margin: 1rem 0 .4rem; }
+.model-driver-picker .model-actions { justify-content: flex-start; }
+.model-driver-picker .form-control { flex: 1 1 220px; min-width: 0; background: #292d32; color: #fff; border-color: #737b86; }
+.model-fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+.model-dialog-error { padding: .8rem 1rem; margin: 1rem 0 0; border: 1px solid #ed8793; border-radius: 8px; color: #ffb7bd; background: rgba(70,15,23,.7); }
+.driver-lists { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem; margin-top: 1rem; }
 .driver-lists > section { min-width: 0; }
-.driver-lists ::deep .driver-list { height: 320px; width: 100%; border: 1px solid #737b86; border-radius: .4rem; }
+.driver-lists h4 { font-size: .95rem; color: #fff; line-height: 1.4; min-height: 2.8em; margin: 0 0 .5rem; }
+.driver-transfer { display: flex; flex-direction: column; gap: .6rem; justify-content: center; }
+.driver-lists ::deep .driver-list { height: 280px; width: 100%; border: 1px solid #737b86; border-radius: .4rem; }
 @media (max-width: 760px) {
-    .driver-lists, .model-fields { grid-template-columns: 1fr; }
-    .driver-transfer { flex-direction: row; }
+    .driver-lists, .model-add-options { grid-template-columns: 1fr; }
+    .driver-transfer { flex-direction: row; flex-wrap: wrap; }
+    .driver-lists h4 { min-height: 0; }
+    .driver-lists ::deep .driver-list { height: 200px; }
 }

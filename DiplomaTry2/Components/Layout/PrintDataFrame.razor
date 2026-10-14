@@ -8,7 +8,7 @@
             <img src="images/printers/help.png" alt="" />
             <span>Справка</span>
         </button>
-        <button class="print-data-frame__tile" type="button" @onclick='() => ShowNotice("Настройки пока не реализованы.")'>
+        <button class="print-data-frame__tile" type="button" @onclick="OpenSettingsAsync">
             <img src="images/printers/settings.png" alt="" />
             <span>Настройки</span>
         </button>
@@ -27,10 +27,17 @@
     </div>
 
     <aside class="print-data-frame__rail print-data-frame__rail--right" aria-label="Дополнительные действия">
-        <button class="print-data-frame__tile" type="button" @onclick='() => ShowNotice("Анализ загруженности пока не реализован.")'>
-            <img src="images/printers/analysis.png" alt="" />
-            <span>Перейти к анализу</span>
-        </button>
+        @if (RightActions is not null)
+        {
+            @RightActions
+        }
+        else
+        {
+            <button class="print-data-frame__tile" type="button" @onclick='() => ShowNotice("Анализ загруженности пока не реализован.")'>
+                <img src="images/printers/analysis.png" alt="" />
+                <span>Перейти к анализу</span>
+            </button>
+        }
         @if (ShowEditAction)
         {
             <button class="print-data-frame__tile" type="button" @onclick='() => ShowNotice("Редактирование пока не реализовано.")'>
@@ -46,7 +53,14 @@
     [Parameter] public string Description { get; set; } = "";
     [Parameter] public bool ShowEditAction { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? RightActions { get; set; }
+    [Parameter] public EventCallback SettingsRequested { get; set; }
 
     private string? notice;
     private void ShowNotice(string message) => notice = message;
+    private async Task OpenSettingsAsync()
+    {
+        if (SettingsRequested.HasDelegate) await SettingsRequested.InvokeAsync();
+        else ShowNotice("Настройки пока не реализованы.");
+    }
 }

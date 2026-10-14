@@ -28,9 +28,20 @@
             <Columns>
                 @foreach (var column in Columns)
                 {
-                    <DxGridDataColumn @key="column.Field" Name="@column.Field" FieldName="@column.Field"
-                                      Caption="@column.Title" MinWidth="64" Width="@InitialWidth(column)"
-                                      DisplayFormat="@column.DisplayFormat" Visible="@column.Visible" />
+                    @if (CellTemplate is not null && column.Field == CellTemplateField)
+                    {
+                        <DxGridDataColumn @key="column.Field" Name="@column.Field" FieldName="@column.Field"
+                                          Caption="@column.Title" MinWidth="64" Width="@InitialWidth(column)"
+                                          DisplayFormat="@column.DisplayFormat" Visible="@column.Visible">
+                            <CellDisplayTemplate>@CellTemplate((TRow)context.DataItem)</CellDisplayTemplate>
+                        </DxGridDataColumn>
+                    }
+                    else
+                    {
+                        <DxGridDataColumn @key="column.Field" Name="@column.Field" FieldName="@column.Field"
+                                          Caption="@column.Title" MinWidth="64" Width="@InitialWidth(column)"
+                                          DisplayFormat="@column.DisplayFormat" Visible="@column.Visible" />
+                    }
                 }
                 @if (RowActions is not null)
                 {
@@ -63,6 +74,8 @@
     [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
     [Parameter, EditorRequired] public Func<TItem, int, TRow> RowSelector { get; set; } = default!;
     [Parameter] public RenderFragment<TRow>? RowActions { get; set; }
+    [Parameter] public string CellTemplateField { get; set; } = "";
+    [Parameter] public RenderFragment<TRow>? CellTemplate { get; set; }
 
     private ElementReference host;
     private IGrid? grid;
